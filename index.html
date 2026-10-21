@@ -1,319 +1,286 @@
 <!DOCTYPE html>
-<html lang="sv" class="dark">
+<html lang="sv" class="h-full bg-stone-950">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whiskeysällskapet - Provningsarkiv</title>
+    <title>Whiskeysällskapet - Provningsdatabas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         amber: {
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f',
-                            950: '#451a03',
+                            500: '#d97706',
+                            600: '#b45309',
+                            700: '#92400e',
+                            800: '#78350f',
+                            900: '#451a03',
+                            950: '#291002'
                         },
-                        whisky: {
-                            dark: '#120c08',
-                            card: '#1c140e',
-                            border: '#382518',
-                            accent: '#d97706'
+                        stone: {
+                            850: '#1c1917',
+                            900: '#121110',
+                            950: '#0a0a09'
                         }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #120c08;
-            color: #f3f4f6;
-        }
-        /* Custom scrollbar for whisky lounge look */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1c140e;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #451a03;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #b45309;
-        }
-    </style>
 </head>
-<body class="min-h-screen flex flex-col bg-whisky-dark antialiased">
+<body class="h-full text-stone-100 font-sans antialiased selection:bg-amber-600 selection:text-white flex flex-col justify-between">
 
-    <!-- Header / Navbar -->
-    <header class="border-b border-whisky-border bg-whisky-card/80 backdrop-blur sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center shadow-lg border border-amber-500/30">
-                    <i class="fa-solid fa-wine-bottle text-amber-200"></i>
+    <!-- Header -->
+    <header class="bg-stone-900/80 backdrop-blur-md border-b border-amber-900/30 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('overview')">
+                <div class="w-10 h-10 rounded-xl bg-amber-950/60 border border-amber-700/50 flex items-center justify-center text-amber-500 shadow-lg shadow-amber-950/50">
+                    <i data-lucide="wine" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg tracking-wide text-amber-500">Whiskeysällskapet</h1>
-                    <p class="text-xs text-amber-200/60 hidden sm:block">Exklusiv provningsdatabas & betyg</p>
+                    <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-wide text-amber-100">Whiskeysällskapet</h1>
+                    <p class="text-xs text-amber-400/80 tracking-widest uppercase font-medium">Gemensamt arkiv & moln</p>
                 </div>
             </div>
             
-            <!-- Desktop Nav tabs -->
-            <nav class="hidden md:flex space-x-1">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-amber-700/20 text-amber-400 border border-amber-500/30">
-                    <i class="fa-solid fa-chart-pie mr-2"></i>Översikt
-                </button>
-                <button onclick="switchTab('whiskys')" id="nav-whiskys" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50">
-                    <i class="fa-solid fa-whisky-glass mr-2"></i>Whiskysorter
-                </button>
-                <button onclick="switchTab('tastings')" id="nav-tastings" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50">
-                    <i class="fa-solid fa-calendar-days mr-2"></i>Provningstillfällen
-                </button>
-                <button onclick="switchTab('reviews')" id="nav-reviews" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50">
-                    <i class="fa-solid fa-star mr-2"></i>Betyg & Recensioner
-                </button>
-                <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50">
-                    <i class="fa-solid fa-trophy mr-2"></i>Topplista
-                </button>
+            <!-- Navigation -->
+            <nav class="hidden md:flex items-center space-x-1">
+                <button onclick="switchTab('overview')" id="nav-overview" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-amber-950/80 text-amber-300 border border-amber-800/50">Översikt</button>
+                <button onclick="switchTab('whiskies')" id="nav-whiskies" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800">Whiskykatalog</button>
+                <button onclick="switchTab('tastings')" id="nav-tastings" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800">Provningar</button>
+                <button onclick="switchTab('reviews')" id="nav-reviews" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800">Betyg & Noteringar</button>
+                <button onclick="switchTab('rankings')" id="nav-rankings" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800">Topplista</button>
             </nav>
 
-            <!-- Quick Add Action -->
+            <!-- Quick Action Button -->
             <div class="flex items-center space-x-2">
-                <button onclick="openModal('whisky')" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-sm font-medium shadow-md transition-all flex items-center space-x-1.5 border border-amber-400/20">
-                    <i class="fa-solid fa-plus"></i>
+                <button onclick="openModal()" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-amber-50 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-950/50 transition-all flex items-center space-x-2 border border-amber-500/30">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
                     <span class="hidden sm:inline">Ny Whisky</span>
                 </button>
             </div>
         </div>
+        <!-- Mobile Nav Bar -->
+        <div class="md:hidden flex overflow-x-auto px-4 py-2 bg-stone-900 border-t border-stone-800 space-x-2 no-scrollbar">
+            <button onclick="switchTab('overview')" id="mob-nav-overview" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-amber-950 text-amber-300 border border-amber-800/50">Översikt</button>
+            <button onclick="switchTab('whiskies')" id="mob-nav-whiskies" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-stone-300 hover:bg-stone-800">Katalog</button>
+            <button onclick="switchTab('tastings')" id="mob-nav-tastings" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-stone-300 hover:bg-stone-800">Provningar</button>
+            <button onclick="switchTab('reviews')" id="mob-nav-reviews" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-stone-300 hover:bg-stone-800">Betyg</button>
+            <button onclick="switchTab('rankings')" id="mob-nav-rankings" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-stone-300 hover:bg-stone-800">Topplista</button>
+        </div>
     </header>
 
-    <!-- Mobile Navigation Bar (Bottom) -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-whisky-card/95 border-t border-whisky-border backdrop-blur z-40 px-2 py-2 flex justify-around">
-        <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="mob-nav-btn flex flex-col items-center p-2 text-amber-500">
-            <i class="fa-solid fa-chart-pie text-lg"></i>
-            <span class="text-[10px] mt-1">Översikt</span>
-        </button>
-        <button onclick="switchTab('whiskys')" id="mob-nav-whiskys" class="mob-nav-btn flex flex-col items-center p-2 text-zinc-400">
-            <i class="fa-solid fa-whisky-glass text-lg"></i>
-            <span class="text-[10px] mt-1">Whiskys</span>
-        </button>
-        <button onclick="switchTab('tastings')" id="mob-nav-tastings" class="mob-nav-btn flex flex-col items-center p-2 text-zinc-400">
-            <i class="fa-solid fa-calendar-days text-lg"></i>
-            <span class="text-[10px] mt-1">Provningar</span>
-        </button>
-        <button onclick="switchTab('reviews')" id="mob-nav-reviews" class="mob-nav-btn flex flex-col items-center p-2 text-zinc-400">
-            <i class="fa-solid fa-star text-lg"></i>
-            <span class="text-[10px] mt-1">Recensioner</span>
-        </button>
-        <button onclick="switchTab('leaderboard')" id="mob-nav-leaderboard" class="mob-nav-btn flex flex-col items-center p-2 text-zinc-400">
-            <i class="fa-solid fa-trophy text-lg"></i>
-            <span class="text-[10px] mt-1">Topp</span>
-        </button>
-    </div>
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-16 md:mb-6">
-
-        <!-- TAB 1: DASHBOARD / ÖVERSIKT -->
-        <section id="tab-dashboard" class="tab-content space-y-6">
+        <!-- TAB: OVERVIEW -->
+        <section id="tab-overview" class="space-y-8">
             <!-- Hero Banner -->
-            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-950 via-whisky-card to-amber-950 border border-amber-500/20 p-6 sm:p-8 shadow-xl">
-                <div class="absolute -right-10 -bottom-10 opacity-10 text-amber-500 text-9xl pointer-events-none">
-                    <i class="fa-solid fa-wine-bottle"></i>
-                </div>
-                <div class="relative z-10 max-w-2xl">
-                    <span class="inline-block bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/20 mb-3">Välkommen till klubben</span>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Skåla för de gyllene dropparna</h2>
-                    <p class="text-zinc-300 text-sm sm:text-base leading-relaxed mb-6">
-                        Håll koll på era provade whiskysorter, sätt betyg, dokumentera smaknoteringar och följ upp tidigare provningstillfällen tillsammans i sällskapet.
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-stone-900 via-amber-950/40 to-stone-900 border border-amber-900/40 p-8 sm:p-12 shadow-2xl">
+                <div class="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-700/40 text-amber-300 text-xs font-medium tracking-wide">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Molnsynkad databas i realtid</span>
+                    </div>
+                    <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-amber-50">Skåla för de gyllene dropparna</h2>
+                    <p class="text-stone-300 text-sm sm:text-base leading-relaxed">
+                        Håll koll på era provade whiskysorter, sätt betyg, dokumentera smaknoteringar och följ upp tidigare provningstillfällen tillsammans i sällskapet direkt från era mobiler.
                     </p>
-                    <div class="flex flex-wrap gap-3">
-                        <button onclick="openModal('rating')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 shadow-md">
-                            <i class="fa-solid fa-star text-amber-200"></i>
-                            <span>Sätt betyg på whisky</span>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="openModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition shadow-lg shadow-amber-950/60 flex items-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Registrera flaska</span>
                         </button>
-                        <button onclick="openModal('tasting')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center space-x-2 border border-zinc-700">
-                            <i class="fa-solid fa-calendar-plus text-amber-500"></i>
-                            <span>Planera provning</span>
+                        <button onclick="openReviewModal()" class="bg-stone-800 hover:bg-stone-700 text-amber-200 font-medium px-5 py-2.5 rounded-xl text-sm transition border border-stone-700 flex items-center space-x-2">
+                            <i data-lucide="star" class="w-4 h-4"></i>
+                            <span>Sätt betyg</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-zinc-400 text-sm font-medium">Whiskysorter</span>
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                            <i class="fa-solid fa-whisky-glass"></i>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="bg-stone-900/70 backdrop-blur border border-stone-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Whiskysorter</span>
+                        <div class="p-2 rounded-xl bg-amber-950/60 text-amber-500 border border-amber-900/30">
+                            <i data-lucide="database" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div id="stat-whiskys-count" class="text-2xl sm:text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-zinc-500 mt-1">Registrerade i arkivet</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span id="stat-total-whiskies" class="text-3xl font-bold font-serif text-amber-100">0</span>
+                    </div>
+                    <p class="text-xs text-stone-400 mt-1">Registrerade i arkivet</p>
                 </div>
 
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-zinc-400 text-sm font-medium">Provningar</span>
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                            <i class="fa-solid fa-calendar-days"></i>
+                <div class="bg-stone-900/70 backdrop-blur border border-stone-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Provningar</span>
+                        <div class="p-2 rounded-xl bg-amber-950/60 text-amber-500 border border-amber-900/30">
+                            <i data-lucide="calendar" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div id="stat-tastings-count" class="text-2xl sm:text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-zinc-500 mt-1">Genomförda tillfällen</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span id="stat-total-tastings" class="text-3xl font-bold font-serif text-amber-100">0</span>
+                    </div>
+                    <p class="text-xs text-stone-400 mt-1">Genomförda tillfällen</p>
                 </div>
 
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-zinc-400 text-sm font-medium">Recensioner</span>
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                            <i class="fa-solid fa-star"></i>
+                <div class="bg-stone-900/70 backdrop-blur border border-stone-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Recensioner</span>
+                        <div class="p-2 rounded-xl bg-amber-950/60 text-amber-500 border border-amber-900/30">
+                            <i data-lucide="message-square" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div id="stat-reviews-count" class="text-2xl sm:text-3xl font-bold text-white">0</div>
-                    <p class="text-xs text-zinc-500 mt-1">Betyg satta totalt</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span id="stat-total-reviews" class="text-3xl font-bold font-serif text-amber-100">0</span>
+                    </div>
+                    <p class="text-xs text-stone-400 mt-1">Betyg satta totalt</p>
                 </div>
 
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-zinc-400 text-sm font-medium">Snittbetyg</span>
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                            <i class="fa-solid fa-award"></i>
+                <div class="bg-stone-900/70 backdrop-blur border border-stone-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Snittbetyg</span>
+                        <div class="p-2 rounded-xl bg-amber-950/60 text-amber-500 border border-amber-900/30">
+                            <i data-lucide="star" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div id="stat-avg-rating" class="text-2xl sm:text-3xl font-bold text-white">0.0</div>
-                    <p class="text-xs text-zinc-500 mt-1">Av 10 möjliga poäng</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span id="stat-avg-score" class="text-3xl font-bold font-serif text-amber-100">0.0</span>
+                        <span class="text-xs text-stone-400 ml-1">/ 10</span>
+                    </div>
+                    <p class="text-xs text-stone-400 mt-1">Sällskapets genomsnitt</p>
                 </div>
             </div>
 
-            <!-- Recent Highlights & Top 3 -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Högsta betyg topp 3 -->
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-6 shadow-sm lg:col-span-1 flex flex-col">
+            <!-- Highlights Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Top Favorites Preview -->
+                <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-6 shadow-lg">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-lg text-white flex items-center space-x-2">
-                            <i class="fa-solid fa-trophy text-amber-500"></i>
-                            <span>Sällskapets Favoriter</span>
+                        <h3 class="font-serif text-lg font-bold text-amber-100 flex items-center space-x-2">
+                            <i data-lucide="award" class="w-5 h-5 text-amber-500"></i>
+                            <span>Sällskapets Topplaceringar</span>
                         </h3>
-                        <button onclick="switchTab('leaderboard')" class="text-xs text-amber-500 hover:underline">Visa alla</button>
+                        <button onclick="switchTab('rankings')" class="text-xs text-amber-400 hover:text-amber-300 font-medium">Visa alla</button>
                     </div>
-                    <div id="dashboard-top-list" class="space-y-3 flex-1 flex flex-col justify-around">
-                        <!-- Fylls via JS -->
+                    <div id="overview-top-list" class="space-y-3">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- Senaste provning & Recensioner -->
-                <div class="bg-whisky-card border border-whisky-border rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col">
+                <!-- Recent Reviews Preview -->
+                <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-6 shadow-lg">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-lg text-white flex items-center space-x-2">
-                            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                        <h3 class="font-serif text-lg font-bold text-amber-100 flex items-center space-x-2">
+                            <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
                             <span>Senaste Recensionerna</span>
                         </h3>
-                        <button onclick="switchTab('reviews')" class="text-xs text-amber-500 hover:underline">Visa alla</button>
+                        <button onclick="switchTab('reviews')" class="text-xs text-amber-400 hover:text-amber-300 font-medium">Visa alla</button>
                     </div>
-                    <div id="dashboard-recent-reviews" class="space-y-3 flex-1">
-                        <!-- Fylls via JS -->
+                    <div id="overview-recent-reviews" class="space-y-3">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- TAB 2: WHISKYSORTER -->
-        <section id="tab-whiskys" class="tab-content hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- TAB: WHISKIES -->
+        <section id="tab-whiskies" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Whiskykatalog</h2>
-                    <p class="text-sm text-zinc-400">Alla flaskor som har registrerats i sällskapet.</p>
+                    <h2 class="font-serif text-2xl font-bold text-amber-100">Whiskykatalog</h2>
+                    <p class="text-stone-400 text-sm">Alla flaskor som har registrerats i sällskapet.</p>
                 </div>
-                <div class="flex items-center space-x-3 w-full sm:w-auto">
-                    <div class="relative flex-1 sm:w-64">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-zinc-500 text-sm"></i>
-                        <input type="text" id="search-whisky" oninput="renderWhiskys()" placeholder="Sök whisky eller destilleri..." class="w-full bg-zinc-900 border border-whisky-border rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                <div class="flex items-center space-x-3">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-500"></i>
+                        <input type="text" id="whisky-search" oninput="filterWhiskies()" placeholder="Sök whisky eller destilleri..." class="w-full sm:w-64 bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600 transition">
                     </div>
-                    <button onclick="openModal('whisky')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all shrink-0">
-                        <i class="fa-solid fa-plus mr-1"></i> Ny
+                    <button onclick="openModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 whitespace-nowrap shadow-lg shadow-amber-950/40">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Ny flaska</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Whisky Grid -->
-            <div id="whiskys-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Fylls via JS -->
+            <!-- Whiskies Grid -->
+            <div id="whiskies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
             </div>
         </section>
 
-        <!-- TAB 3: PROVNINGSTILLFÄLLEN -->
-        <section id="tab-tastings" class="tab-content hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- TAB: TASTINGS -->
+        <section id="tab-tastings" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Provningstillfällen</h2>
-                    <p class="text-sm text-zinc-400">Temakvällar och träffar som hållits eller planerats.</p>
+                    <h2 class="font-serif text-2xl font-bold text-amber-100">Provningstillfällen</h2>
+                    <p class="text-stone-400 text-sm">Temakvällar och träffar som hållits eller planerats.</p>
                 </div>
-                <button onclick="openModal('tasting')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all">
-                    <i class="fa-solid fa-calendar-plus mr-1.5"></i> Planera provning
+                <button onclick="openTastingModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-950/40">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Planera provning</span>
                 </button>
             </div>
 
             <div id="tastings-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Fylls via JS -->
+                <!-- Populated by JS -->
             </div>
         </section>
 
-        <!-- TAB 4: RECENSIONER & BETYG -->
-        <section id="tab-reviews" class="tab-content hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- TAB: REVIEWS -->
+        <section id="tab-reviews" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Betyg & Smaknoteringar</h2>
-                    <p class="text-sm text-zinc-400">Medlemmarnas individuella omdömen och provanteckningar.</p>
+                    <h2 class="font-serif text-2xl font-bold text-amber-100">Betyg & Smaknoteringar</h2>
+                    <p class="text-stone-400 text-sm">Medlemmarnas individuella omdömen och provanteckningar.</p>
                 </div>
-                <button onclick="openModal('rating')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all">
-                    <i class="fa-solid fa-star mr-1.5"></i> Sätt nytt betyg
+                <button onclick="openReviewModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-950/40">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                    <span>Sätt betyg</span>
                 </button>
             </div>
 
-            <div id="reviews-list" class="space-y-4">
-                <!-- Fylls via JS -->
+            <div id="reviews-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
             </div>
         </section>
 
-        <!-- TAB 5: TOPPLISTA -->
-        <section id="tab-leaderboard" class="tab-content hidden space-y-6">
+        <!-- TAB: RANKINGS -->
+        <section id="tab-rankings" class="hidden space-y-6">
             <div>
-                <h2 class="text-2xl font-bold text-white">Topplista & Statistik</h2>
-                <p class="text-sm text-zinc-400">De bäst rankade whiskysorterna baserat på sällskapets snittbetyg.</p>
+                <h2 class="font-serif text-2xl font-bold text-amber-100">Topplista & Statistik</h2>
+                <p class="text-stone-400 text-sm">De bäst rankade whiskysorterna baserat på sällskapets snittbetyg.</p>
             </div>
 
-            <div class="bg-whisky-card border border-whisky-border rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-whisky-border bg-zinc-900/50 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                                <th class="p-4 w-16 text-center">#</th>
-                                <th class="p-4">Whisky</th>
-                                <th class="p-4">Typ</th>
-                                <th class="p-4">Ålder</th>
-                                <th class="p-4 text-center">Antal betyg</th>
-                                <th class="p-4 text-right">Snittbetyg</th>
+                            <tr class="border-b border-stone-800 bg-stone-900/90 text-stone-400 text-xs uppercase tracking-wider">
+                                <th class="py-4 px-6 font-semibold">#</th>
+                                <th class="py-4 px-6 font-semibold">Whisky</th>
+                                <th class="py-4 px-6 font-semibold">Typ</th>
+                                <th class="py-4 px-6 font-semibold">Ålder</th>
+                                <th class="py-4 px-6 font-semibold">Antal betyg</th>
+                                <th class="py-4 px-6 font-semibold text-right">Snittbetyg</th>
                             </tr>
                         </thead>
-                        <tbody id="leaderboard-table-body" class="divide-y divide-whisky-border text-sm">
-                            <!-- Fylls via JS -->
+                        <tbody id="rankings-table-body" class="divide-y divide-stone-800/60 text-sm text-stone-200">
+                            <!-- Populated by JS -->
                         </tbody>
                     </table>
                 </div>
@@ -322,556 +289,460 @@
 
     </main>
 
-    <!-- MODALS -->
+    <!-- Footer -->
+    <footer class="bg-stone-900/60 border-t border-stone-800/60 py-6 mt-16 text-center text-xs text-stone-500">
+        <p>Whiskeysällskapets Arkiv © 2026. Molnsynkad databas via Firebase.</p>
+    </footer>
 
-    <!-- Modal: Lägg till / Redigera Whisky -->
-    <div id="modal-whisky" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-whisky-card border border-whisky-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button onclick="closeModal('whisky')" class="absolute top-4 right-4 text-zinc-400 hover:text-white">
-                <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- MODAL: ADD WHISKY -->
+    <div id="whisky-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-stone-900 border border-amber-900/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute right-5 top-5 text-stone-400 hover:text-stone-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-                <i class="fa-solid fa-whisky-glass text-amber-500"></i>
-                <span id="whisky-modal-title">Registrera ny whisky</span>
-            </h3>
-            <form id="form-whisky" onsubmit="handleWhiskySubmit(event)" class="space-y-4">
-                <input type="hidden" id="whisky-id">
+            <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Registrera ny whisky</h3>
+            <p class="text-stone-400 text-xs mb-6">Fyll i uppgifterna för flaska som sällskapet ska prova.</p>
+            
+            <form id="whisky-form" onsubmit="handleWhiskySubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Namn på whisky *</label>
-                    <input type="text" id="whisky-name" required placeholder="t.ex. Ardbeg Uigeadail" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Namn</label>
+                    <input type="text" id="w-name" required placeholder="t.ex. Ardbeg Uigeadail" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Destilleri *</label>
-                        <input type="text" id="whisky-distillery" required placeholder="t.ex. Ardbeg" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Destilleri</label>
+                        <input type="text" id="w-distillery" required placeholder="t.ex. Ardbeg" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Whiskytyp *</label>
-                        <select id="whisky-type" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Typ</label>
+                        <select id="w-type" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                             <option value="Single Malt">Single Malt</option>
                             <option value="Bourbon">Bourbon</option>
                             <option value="Blended">Blended</option>
-                            <option value="Rye">Rye Whisky</option>
-                            <option value="Irish">Irish Whiskey</option>
-                            <option value="Japansk">Japansk Whisky</option>
-                            <option value="Övrigt">Övrigt</option>
+                            <option value="Rye">Rye</option>
+                            <option value="Islay / Rökig">Islay / Rökig</option>
+                            <option value="Annan">Annan</option>
                         </select>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Ålder (år)</label>
-                        <input type="text" id="whisky-age" placeholder="t.ex. 12 eller NAS" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ålder (år)</label>
+                        <input type="text" id="w-age" placeholder="t.ex. 12 eller NAS" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Bild-URL (valfritt)</label>
-                        <input type="url" id="whisky-image" placeholder="https://exempel.se/flaska.jpg" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Bild-länk (valfri URL)</label>
+                        <input type="url" id="w-image" placeholder="https://..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                 </div>
-                <div class="pt-3 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal('whisky')" class="px-4 py-2 rounded-lg text-sm font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Avbryt</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white shadow-md">Spara whisky</button>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Spara whisky</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Lägg till Provningstillfälle -->
-    <div id="modal-tasting" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-whisky-card border border-whisky-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button onclick="closeModal('tasting')" class="absolute top-4 right-4 text-zinc-400 hover:text-white">
-                <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- MODAL: ADD TASTING -->
+    <div id="tasting-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-stone-900 border border-amber-900/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeTastingModal()" class="absolute right-5 top-5 text-stone-400 hover:text-stone-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-                <i class="fa-solid fa-calendar-days text-amber-500"></i>
-                <span>Planera / Registrera provningstillfälle</span>
-            </h3>
-            <form id="form-tasting" onsubmit="handleTastingSubmit(event)" class="space-y-4">
-                <input type="hidden" id="tasting-id">
+            <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Planera / Registrera provning</h3>
+            <p class="text-stone-400 text-xs mb-6">Skapa ett provningstillfälle för sällskapet.</p>
+            
+            <form id="tasting-form" onsubmit="handleTastingSubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Provningstema *</label>
-                    <input type="text" id="tasting-theme" required placeholder="t.ex. Islay-peat eller Japanska mästare" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Tema</label>
+                    <input type="text" id="t-theme" required placeholder="t.ex. Japansk Whisky eller Islay-special" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Datum</label>
+                        <input type="date" id="t-date" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Plats / Värd</label>
+                        <input type="text" id="t-host" placeholder="t.ex. Hos Erik" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Datum *</label>
-                    <input type="date" id="tasting-date" required class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Beskrivning</label>
+                    <textarea id="t-notes" rows="3" placeholder="Kort om kvällens upplägg..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Beskrivning / Anteckningar</label>
-                    <textarea id="tasting-notes" rows="3" placeholder="Kort om kvällens upplägg, värd eller övrigt..." class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
-                </div>
-                <div class="pt-3 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal('tasting')" class="px-4 py-2 rounded-lg text-sm font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Avbryt</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white shadow-md">Spara provning</button>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeTastingModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Spara tillfälle</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Sätt Betyg / Recension -->
-    <div id="modal-rating" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-whisky-card border border-whisky-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button onclick="closeModal('rating')" class="absolute top-4 right-4 text-zinc-400 hover:text-white">
-                <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- MODAL: ADD REVIEW -->
+    <div id="review-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-stone-900 border border-amber-900/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeReviewModal()" class="absolute right-5 top-5 text-stone-400 hover:text-stone-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-                <i class="fa-solid fa-star text-amber-500"></i>
-                <span>Sätt betyg & smaknotering</span>
-            </h3>
-            <form id="form-rating" onsubmit="handleRatingSubmit(event)" class="space-y-4">
-                <input type="hidden" id="rating-id">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Välj Whisky *</label>
-                        <select id="rating-whisky-id" required class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
-                            <!-- Fylls via JS -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Provningstillfälle (valfritt)</label>
-                        <select id="rating-tasting-id" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
-                            <option value="">-- Ingen specifik träff --</option>
-                        </select>
-                    </div>
+            <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Sätt betyg & smaknotering</h3>
+            <p class="text-stone-400 text-xs mb-6">Dela dina intryck av en provad flaska.</p>
+            
+            <form id="review-form" onsubmit="handleReviewSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Välj Whisky</label>
+                    <select id="r-whisky-id" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <!-- Populated dynamically -->
+                    </select>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Medlemsnamn *</label>
-                        <input type="text" id="rating-member" required placeholder="t.ex. Erik" class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ditt namn</label>
+                        <input type="text" id="r-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-zinc-400 mb-1">Betyg (1–10) * <span id="rating-val-display" class="text-amber-500 font-bold">8</span></label>
-                        <input type="range" id="rating-score" min="1" max="10" step="1" value="8" oninput="document.getElementById('rating-val-display').innerText = this.value" class="w-full accent-amber-500 mt-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Betyg (1-10)</label>
+                        <input type="number" id="r-score" min="1" max="10" step="0.5" required placeholder="t.ex. 8.5" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Smaknoteringar & Omdöme</label>
-                    <textarea id="rating-notes" rows="3" placeholder="Doft, smak, finish, t.ex. torv, vanilj och torkad frukt..." class="w-full bg-zinc-900 border border-whisky-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Smaknoteringar</label>
+                    <textarea id="r-notes" rows="3" required placeholder="Torv, vanilj, apelsinskal, lång eftersmak..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
                 </div>
-                <div class="pt-3 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal('rating')" class="px-4 py-2 rounded-lg text-sm font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Avbryt</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white shadow-md">Spara betyg</button>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeReviewModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Publicera recension</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-whisky-border bg-whisky-card/40 py-6 text-center text-xs text-zinc-500">
-        <p>Whiskeysällskapets Arkiv &copy; 2026. Data sparas lokalt i din webbläsare.</p>
-    </footer>
+    <!-- Firebase SDK & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        // Initial Mock Seed Data if LocalStorage is empty
-        const defaultWhiskys = [
-            { id: 'w1', name: 'Ardbeg Uigeadail', distillery: 'Ardbeg', type: 'Single Malt', age: 'NAS', image: 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80' },
-            { id: 'w2', name: 'Lagavulin 16', distillery: 'Lagavulin', type: 'Single Malt', age: '16', image: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80' },
-            { id: 'w3', name: 'Macallan 12 Double Cask', distillery: 'Macallan', type: 'Single Malt', age: '12', image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80' },
-            { id: 'w4', name: 'Bulleit Bourbon', distillery: 'Bulleit', type: 'Bourbon', age: 'NAS', image: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=600&q=80' }
-        ];
+        const firebaseConfig = {
+            apiKey: "AIzaSyAcorqLZZbJ7cWfd76QfJ0Pa10y194llBY",
+            authDomain: "whiskeysallskapet.firebaseapp.com",
+            projectId: "whiskeysallskapet",
+            storageBucket: "whiskeysallskapet.firebasestorage.app",
+            messagingSenderId: "516403386122",
+            appId: "1:516403386122:web:6c16da7850d2ff961a0cf3",
+            measurementId: "G-SG35QJJ06N"
+        };
 
-        const defaultTastings = [
-            { id: 't1', theme: 'Islay-peat & Röktmästare', date: '2026-02-15', notes: 'En rökig kväll med fokus på sydkusten på Islay.' },
-            { id: 't2', theme: 'Sherrylagrat & Sötma', date: '2026-01-10', notes: 'Provning av flaskor med tydliga sherrytoner och torkad frukt.' }
-        ];
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        const defaultReviews = [
-            { id: 'r1', whiskyId: 'w1', tastingId: 't1', member: 'Erik', score: 9, notes: 'Fantastisk rökighet och fatkaraktär med fatstyrka som bär.' },
-            { id: 'r2', whiskyId: 'w2', tastingId: 't1', member: 'Johan', score: 9, notes: 'Klassiker. Torv, jod och mörk choklad i en fin balans.' },
-            { id: 'r3', whiskyId: 'w3', tastingId: 't2', member: 'Mikael', score: 8, notes: 'Vanilj, kola och äpplen. Mycket angenäm och lättgillad.' },
-            { id: 'r4', whiskyId: 'w4', tastingId: '', member: 'David', score: 7, notes: 'Kryddig och söt majston, perfekt i en Old Fashioned.' }
-        ];
+        // State variables
+        let whiskies = [];
+        let tastings = [];
+        let reviews = [];
 
-        // State Management
-        let whiskys = JSON.parse(localStorage.getItem('whisky_app_whiskys')) || defaultWhiskys;
-        let tastings = JSON.parse(localStorage.getItem('whisky_app_tastings')) || defaultTastings;
-        let reviews = JSON.parse(localStorage.getItem('whisky_app_reviews')) || defaultReviews;
-
-        function saveData() {
-            localStorage.setItem('whisky_app_whiskys', JSON.stringify(whiskys));
-            localStorage.setItem('whisky_app_tastings', JSON.stringify(tastings));
-            localStorage.setItem('whisky_app_reviews', JSON.stringify(reviews));
-        }
-
-        // Tab Navigation
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            // Desktop buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50";
-            });
-            const activeNav = document.getElementById(`nav-${tabId}`);
-            if(activeNav) activeNav.className = "nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-amber-700/20 text-amber-400 border border-amber-500/30";
-
-            // Mobile buttons
-            document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-                btn.className = "mob-nav-btn flex flex-col items-center p-2 text-zinc-400";
-            });
-            const activeMob = document.getElementById(`mob-nav-${tabId}`);
-            if(activeMob) activeMob.className = "mob-nav-btn flex flex-col items-center p-2 text-amber-500";
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Real-time listeners
+        onSnapshot(collection(db, "whiskies"), (snapshot) => {
+            whiskies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderAll();
-        }
+        });
 
-        // Modal Controls
-        function openModal(type, id = null) {
-            document.getElementById(`modal-${type}`).classList.remove('hidden');
-            if (type === 'rating') {
-                populateDropdowns();
+        onSnapshot(collection(db, "tastings"), (snapshot) => {
+            tastings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        onSnapshot(collection(db, "reviews"), (snapshot) => {
+            reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        // Expose handlers globally
+        window.handleWhiskySubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('w-name').value;
+            const distillery = document.getElementById('w-distillery').value;
+            const type = document.getElementById('w-type').value;
+            const age = document.getElementById('w-age').value || 'NAS';
+            const imageUrl = document.getElementById('w-image').value || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+
+            try {
+                await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
+                closeModal();
+                document.getElementById('whisky-form').reset();
+            } catch (err) {
+                console.error("Fel vid sparande av whisky:", err);
+                alert("Kunde inte spara till molnet. Kontrollera anslutningen.");
             }
-        }
+        };
 
-        function closeModal(type) {
-            document.getElementById(`modal-${type}`).classList.add('hidden');
-            const form = document.getElementById(`form-${type}`);
-            if (form) form.reset();
-        }
+        window.handleTastingSubmit = async function(e) {
+            e.preventDefault();
+            const theme = document.getElementById('t-theme').value;
+            const date = document.getElementById('t-date').value;
+            const host = document.getElementById('t-host').value || 'Ej angivet';
+            const notes = document.getElementById('t-notes').value;
 
-        // Render All Views
+            try {
+                await addDoc(collection(db, "tastings"), { theme, date, host, notes, createdAt: Date.now() });
+                closeTastingModal();
+                document.getElementById('tasting-form').reset();
+            } catch (err) {
+                console.error("Fel vid sparande av provning:", err);
+            }
+        };
+
+        window.handleReviewSubmit = async function(e) {
+            e.preventDefault();
+            const whiskyId = document.getElementById('r-whisky-id').value;
+            const member = document.getElementById('r-member').value;
+            const score = parseFloat(document.getElementById('r-score').value);
+            const notes = document.getElementById('r-notes').value;
+
+            const selectedWhisky = whiskies.find(w => w.id === whiskyId);
+
+            try {
+                await addDoc(collection(db, "reviews"), {
+                    whiskyId,
+                    whiskyName: selectedWhisky ? selectedWhisky.name : 'Okänd whisky',
+                    member,
+                    score,
+                    notes,
+                    createdAt: Date.now()
+                });
+                closeReviewModal();
+                document.getElementById('review-form').reset();
+            } catch (err) {
+                console.error("Fel vid sparande av betyg:", err);
+            }
+        };
+
         function renderAll() {
-            renderDashboard();
-            renderWhiskys();
+            renderOverview();
+            renderWhiskies();
             renderTastings();
             renderReviews();
-            renderLeaderboard();
+            renderRankings();
+            populateWhiskyDropdown();
+            lucide.createIcons();
         }
 
-        // Dashboard Stats & Lists
-        function renderDashboard() {
-            document.getElementById('stat-whiskys-count').innerText = whiskys.length;
-            document.getElementById('stat-tastings-count').innerText = tastings.length;
-            document.getElementById('stat-reviews-count').innerText = reviews.length;
+        function renderOverview() {
+            document.getElementById('stat-total-whiskies').textContent = whiskies.length;
+            document.getElementById('stat-total-tastings').textContent = tastings.length;
+            document.getElementById('stat-total-reviews').textContent = reviews.length;
 
-            let avg = 0;
+            let totalScore = 0;
             if (reviews.length > 0) {
-                const sum = reviews.reduce((acc, r) => acc + Number(r.score), 0);
-                avg = (sum / reviews.length).toFixed(1);
-            }
-            document.getElementById('stat-avg-rating').innerText = avg;
-
-            // Top 3 in Dashboard
-            const scoresMap = getCalculatedLeaderboard();
-            const topListEl = document.getElementById('dashboard-top-list');
-            topListEl.innerHTML = '';
-            
-            if (scoresMap.length === 0) {
-                topListEl.innerHTML = '<p class="text-zinc-500 text-sm">Inga betyg registrerade ännu.</p>';
+                reviews.forEach(r => totalScore += Number(r.score));
+                document.getElementById('stat-avg-score').textContent = (totalScore / reviews.length).toFixed(1);
             } else {
-                scoresMap.slice(0, 3).forEach((item, index) => {
-                    topListEl.innerHTML += `
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-whisky-border">
-                            <div class="flex items-center space-x-3">
-                                <span class="font-bold text-amber-500 text-sm w-5 text-center">#${index + 1}</span>
-                                <div>
-                                    <h4 class="text-sm font-semibold text-white">${item.whisky.name}</h4>
-                                    <p class="text-xs text-zinc-400">${item.whisky.distillery} • ${item.whisky.type}</p>
+                document.getElementById('stat-avg-score').textContent = '0.0';
+            }
+
+            // Top favorites preview (top 3)
+            const ranked = getRankedWhiskies().slice(0, 3);
+            const topListEl = document.getElementById('overview-top-list');
+            if (ranked.length === 0) {
+                topListEl.innerHTML = `<p class="text-xs text-stone-500 italic">Inga betyg satta ännu.</p>`;
+            } else {
+                topListEl.innerHTML = ranked.map((item, idx) => `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-stone-950/40 border border-stone-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-6 h-6 rounded-full bg-amber-950 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-800/50">${idx + 1}</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-stone-200">${item.name}</h4>
+                                <p class="text-xs text-stone-400">${item.distillery} • ${item.type}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold text-amber-400">${item.avgScore}</span>
+                            <span class="text-xs text-stone-500">/10</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Recent reviews preview (top 3)
+            const recentEl = document.getElementById('overview-recent-reviews');
+            const sortedReviews = [...reviews].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3);
+            if (sortedReviews.length === 0) {
+                recentEl.innerHTML = `<p class="text-xs text-stone-500 italic">Inga recensioner ännu.</p>`;
+            } else {
+                recentEl.innerHTML = sortedReviews.map(r => `
+                    <div class="p-3 rounded-xl bg-stone-950/40 border border-stone-800 space-y-1">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-amber-200">${r.whiskyName}</span>
+                            <span class="text-amber-400 font-bold">${r.score} / 10</span>
+                        </div>
+                        <p class="text-xs text-stone-300 italic">"${r.notes}"</p>
+                        <p class="text-[10px] text-stone-500">Av ${r.member}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderWhiskies(filtered = whiskies) {
+            const grid = document.getElementById('whiskies-grid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga whiskysorter hittades. Lägg till er första flaska!</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(w => {
+                const wReviews = reviews.filter(r => r.whiskyId === w.id);
+                const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : '–';
+                return `
+                    <div class="bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 overflow-hidden relative bg-stone-950">
+                                <img src="${w.imageUrl}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-900/80 backdrop-blur text-amber-300 text-xs font-semibold border border-amber-800/50">${w.type}</span>
+                            </div>
+                            <div class="p-5 space-y-2">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-xs text-amber-500 font-medium uppercase tracking-wider">${w.distillery}</p>
+                                        <h3 class="font-serif text-lg font-bold text-stone-100">${w.name}</h3>
+                                    </div>
+                                    <span class="text-xs bg-stone-800 text-stone-300 px-2.5 py-1 rounded-lg font-medium">${w.age} år</span>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-amber-400 font-bold text-sm">${item.avgScore}</span>
-                                <span class="text-xs text-zinc-500">/10</span>
-                            </div>
                         </div>
-                    `;
-                });
-            }
-
-            // Recent Reviews in Dashboard
-            const recentEl = document.getElementById('dashboard-recent-reviews');
-            recentEl.innerHTML = '';
-            const sortedReviews = [...reviews].reverse().slice(0, 3);
-            
-            if (sortedReviews.length === 0) {
-                recentEl.innerHTML = '<p class="text-zinc-500 text-sm">Inga recensioner ännu.</p>';
-            } else {
-                sortedReviews.forEach(r => {
-                    const whisky = whiskys.find(w => w.id === r.whiskyId) || { name: 'Okänd whisky' };
-                    recentEl.innerHTML += `
-                        <div class="p-3 rounded-xl bg-zinc-900/60 border border-whisky-border space-y-1">
-                            <div class="flex justify-between items-start">
-                                <span class="text-xs font-semibold text-amber-500">${whisky.name}</span>
-                                <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-xs font-bold border border-amber-500/20">${r.score}/10</span>
-                            </div>
-                            <p class="text-xs text-zinc-300 italic">"${r.notes || 'Inga anteckningar'}"</p>
-                            <p class="text-[10px] text-zinc-500 text-right">— ${r.member}</p>
-                        </div>
-                    `;
-                });
-            }
-        }
-
-        // Whiskys Render
-        function renderWhiskys() {
-            const query = (document.getElementById('search-whisky').value || '').toLowerCase();
-            const grid = document.getElementById('whiskys-grid');
-            grid.innerHTML = '';
-
-            const filtered = whiskys.filter(w => 
-                w.name.toLowerCase().includes(query) || 
-                w.distillery.toLowerCase().includes(query) ||
-                w.type.toLowerCase().includes(query)
-            );
-
-            if (filtered.length === 0) {
-                grid.innerHTML = '<p class="text-zinc-500 text-sm col-span-full">Inga whiskysorter hittades.</p>';
-                return;
-            }
-
-            filtered.forEach(w => {
-                const img = w.image && w.image.trim() !== '' ? w.image : 'https://placehold.co/400x300/1c140e/d97706?text=Whisky';
-                grid.innerHTML += `
-                    <div class="bg-whisky-card border border-whisky-border rounded-xl overflow-hidden shadow-sm flex flex-col group hover:border-amber-500/50 transition-colors">
-                        <div class="h-48 overflow-hidden bg-zinc-900 relative">
-                            <img src="${img}" alt="${w.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x300/1c140e/d97706?text=Whisky'">
-                            <span class="absolute top-3 left-3 bg-whisky-card/80 backdrop-blur text-amber-400 text-xs px-2.5 py-1 rounded-full border border-amber-500/30">${w.type}</span>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                                <h3 class="font-bold text-white text-base">${w.name}</h3>
-                                <p class="text-xs text-zinc-400">Destilleri: <span class="text-zinc-200">${w.distillery}</span> | Ålder: <span class="text-zinc-200">${w.age || 'NAS'}</span></p>
-                            </div>
-                            <div class="flex items-center justify-between pt-3 border-t border-whisky-border">
-                                <button onclick="openModalWithWhiskyForRating('${w.id}')" class="text-xs text-amber-500 hover:text-amber-400 font-medium flex items-center space-x-1">
-                                    <i class="fa-solid fa-star"></i><span>Sätt betyg</span>
-                                </button>
-                                <button onclick="deleteWhisky('${w.id}')" class="text-zinc-500 hover:text-red-400 text-xs">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
+                        <div class="px-5 py-4 bg-stone-950/40 border-t border-stone-800/80 flex items-center justify-between">
+                            <span class="text-xs text-stone-400">${wReviews.length} recensioner</span>
+                            <div class="flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
+                                <i data-lucide="star" class="w-4 h-4 fill-amber-500"></i>
+                                <span>${avg}</span>
                             </div>
                         </div>
                     </div>
                 `;
-            });
+            }).join('');
+            lucide.createIcons();
         }
 
-        function openModalWithWhiskyForRating(whiskyId) {
-            openModal('rating');
-            document.getElementById('rating-whisky-id').value = whiskyId;
-        }
-
-        // Tastings Render
         function renderTastings() {
-            const listEl = document.getElementById('tastings-list');
-            listEl.innerHTML = '';
-
+            const container = document.getElementById('tastings-list');
             if (tastings.length === 0) {
-                listEl.innerHTML = '<p class="text-zinc-500 text-sm">Inga provningar inlagda.</p>';
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga provningstillfällen inlagda.</div>`;
                 return;
             }
 
-            tastings.forEach(t => {
-                listEl.innerHTML += `
-                    <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm space-y-3">
+            container.innerHTML = tastings.map(t => `
+                <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-6 shadow-lg space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800/50 font-medium">${t.date || 'Tid ej satt'}</span>
+                        <span class="text-xs text-stone-400 flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${t.host}</span></span>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold text-stone-100">${t.theme}</h3>
+                    <p class="text-stone-300 text-sm leading-relaxed">${t.notes || 'Inga anteckningar angivna.'}</p>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-list');
+            if (reviews.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga recensioner ännu.</div>`;
+                return;
+            }
+
+            container.innerHTML = reviews.map(r => `
+                <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-5 shadow-lg space-y-3 flex flex-col justify-between">
+                    <div class="space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
-                                <span class="text-xs text-amber-500 font-semibold"><i class="fa-solid fa-calendar mr-1"></i> ${t.date}</span>
-                                <h3 class="font-bold text-lg text-white mt-0.5">${t.theme}</h3>
+                                <h4 class="font-serif font-bold text-stone-100">${r.whiskyName}</h4>
+                                <p class="text-xs text-stone-400">Recenserad av <span class="text-amber-300 font-medium">${r.member}</span></p>
                             </div>
-                            <button onclick="deleteTasting('${t.id}')" class="text-zinc-500 hover:text-red-400 text-xs">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <div class="flex items-center space-x-1 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-800/50 text-amber-400 font-bold text-sm">
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500"></i>
+                                <span>${r.score}</span>
+                            </div>
                         </div>
-                        <p class="text-sm text-zinc-300">${t.notes || 'Inga anteckningar angivna.'}</p>
+                        <p class="text-stone-300 text-sm italic bg-stone-950/50 p-3 rounded-xl border border-stone-800">"${r.notes}"</p>
                     </div>
-                `;
-            });
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
 
-        // Reviews Render
-        function renderReviews() {
-            const listEl = document.getElementById('reviews-list');
-            listEl.innerHTML = '';
+        function getRankedWhiskies() {
+            return whiskies.map(w => {
+                const wReviews = reviews.filter(r => r.whiskyId === w.id);
+                const avgScore = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : 0;
+                return {
+                    ...w,
+                    reviewCount: wReviews.length,
+                    avgScore: Number(avgScore)
+                };
+            }).sort((a, b) => b.avgScore - a.avgScore || b.reviewCount - a.reviewCount);
+        }
 
-            if (reviews.length === 0) {
-                listEl.innerHTML = '<p class="text-zinc-500 text-sm">Inga betyg eller recensioner ännu.</p>';
+        function renderRankings() {
+            const tbody = document.getElementById('rankings-table-body');
+            const ranked = getRankedWhiskies();
+
+            if (ranked.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-stone-500 text-sm">Inga whiskysorter att ranka ännu.</td></tr>`;
                 return;
             }
 
-            reviews.forEach(r => {
-                const whisky = whiskys.find(w => w.id === r.whiskyId) || { name: 'Borttagen whisky', distillery: '' };
-                const tasting = tastings.find(t => t.id === r.tastingId);
-
-                listEl.innerHTML += `
-                    <div class="bg-whisky-card border border-whisky-border rounded-xl p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div class="space-y-1">
-                            <div class="flex items-center space-x-2">
-                                <h4 class="font-bold text-white">${whisky.name}</h4>
-                                <span class="text-xs text-zinc-400">(${whisky.distillery})</span>
-                            </div>
-                            <p class="text-xs text-amber-400/80 font-medium">Medlem: ${r.member} ${tasting ? '• Provning: ' + tasting.theme : ''}</p>
-                            <p class="text-sm text-zinc-300 italic pt-1">"${r.notes || 'Inga smaknoteringar'}"</p>
-                        </div>
-                        <div class="flex items-center space-x-4 self-end sm:self-center">
-                            <div class="text-right">
-                                <div class="text-xl font-bold text-amber-500">${r.score}<span class="text-xs text-zinc-500">/10</span></div>
-                            </div>
-                            <button onclick="deleteReview('${r.id}')" class="text-zinc-500 hover:text-red-400 text-xs">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
+            tbody.innerHTML = ranked.map((w, idx) => `
+                <tr class="hover:bg-stone-800/40 transition">
+                    <td class="py-4 px-6 font-bold text-amber-400">${idx + 1}</td>
+                    <td class="py-4 px-6 font-semibold text-stone-100">${w.name} <span class="text-xs text-stone-400 block">${w.distillery}</span></td>
+                    <td class="py-4 px-6 text-stone-300">${w.type}</td>
+                    <td class="py-4 px-6 text-stone-300">${w.age} år</td>
+                    <td class="py-4 px-6 text-stone-300">${w.reviewCount} st</td>
+                    <td class="py-4 px-6 text-right font-bold text-amber-400">${w.avgScore}</td>
+                </tr>
+            `).join('');
         }
 
-        // Leaderboard Calculation & Render
-        function getCalculatedLeaderboard() {
-            const map = {};
-            whiskys.forEach(w => {
-                map[w.id] = { whisky: w, scores: [] };
-            });
+        function populateWhiskyDropdown() {
+            const select = document.getElementById('r-whisky-id');
+            select.innerHTML = whiskies.map(w => `<option value="${w.id}">${w.name} (${w.distillery})</option>`).join('');
+        }
 
-            reviews.forEach(r => {
-                if (map[r.whiskyId]) {
-                    map[r.whiskyId].scores.push(Number(r.score));
+        // Global Navigation & Modal Functions
+        window.switchTab = function(tabId) {
+            ['overview', 'whiskies', 'tastings', 'reviews', 'rankings'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800";
                 }
             });
-
-            const result = [];
-            Object.keys(map).forEach(id => {
-                const item = map[id];
-                if (item.scores.length > 0) {
-                    const sum = item.scores.reduce((a, b) => a + b, 0);
-                    const avgScore = (sum / item.scores.length).toFixed(1);
-                    result.push({
-                        whisky: item.whisky,
-                        count: item.scores.length,
-                        avgScore: Number(avgScore)
-                    });
-                }
-            });
-
-            return result.sort((a, b) => b.avgScore - a.avgScore || b.count - a.count);
-        }
-
-        function renderLeaderboard() {
-            const tbody = document.getElementById('leaderboard-table-body');
-            tbody.innerHTML = '';
-
-            const ranking = getCalculatedLeaderboard();
-
-            if (ranking.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-zinc-500">Ingen statistik tillgänglig än.</td></tr>';
-                return;
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all bg-amber-950/80 text-amber-300 border border-amber-800/50";
             }
-
-            ranking.forEach((item, index) => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-zinc-900/30 transition-colors">
-                        <td class="p-4 text-center font-bold text-amber-500">#${index + 1}</td>
-                        <td class="p-4 font-semibold text-white">${item.whisky.name} <span class="text-xs text-zinc-400 font-normal">(${item.whisky.distillery})</span></td>
-                        <td class="p-4 text-zinc-300">${item.whisky.type}</td>
-                        <td class="p-4 text-zinc-300">${item.whisky.age || 'NAS'}</td>
-                        <td class="p-4 text-center text-zinc-300">${item.count} st</td>
-                        <td class="p-4 text-right font-bold text-amber-400">${item.avgScore} <span class="text-xs text-zinc-500">/10</span></td>
-                    </tr>
-                `;
-            });
-        }
-
-        // Dropdown Populate Helpers
-        function populateDropdowns() {
-            const whiskySelect = document.getElementById('rating-whisky-id');
-            whiskySelect.innerHTML = '';
-            whiskys.forEach(w => {
-                whiskySelect.innerHTML += `<option value="${w.id}">${w.name} (${w.distillery})</option>`;
-            });
-
-            const tastingSelect = document.getElementById('rating-tasting-id');
-            tastingSelect.innerHTML = '<option value="">-- Ingen specifik träff --</option>';
-            tastings.forEach(t => {
-                tastingSelect.innerHTML += `<option value="${t.id}">${t.theme} (${t.date})</option>`;
-            });
-        }
-
-        // Form Handlers
-        function handleWhiskySubmit(e) {
-            e.preventDefault();
-            const id = 'w_' + Date.now();
-            const newWhisky = {
-                id,
-                name: document.getElementById('whisky-name').value,
-                distillery: document.getElementById('whisky-distillery').value,
-                type: document.getElementById('whisky-type').value,
-                age: document.getElementById('whisky-age').value,
-                image: document.getElementById('whisky-image').value
-            };
-
-            whiskys.push(newWhisky);
-            saveData();
-            closeModal('whisky');
-            renderAll();
-        }
-
-        function handleTastingSubmit(e) {
-            e.preventDefault();
-            const id = 't_' + Date.now();
-            const newTasting = {
-                id,
-                theme: document.getElementById('tasting-theme').value,
-                date: document.getElementById('tasting-date').value,
-                notes: document.getElementById('tasting-notes').value
-            };
-
-            tastings.push(newTasting);
-            saveData();
-            closeModal('tasting');
-            renderAll();
-        }
-
-        function handleRatingSubmit(e) {
-            e.preventDefault();
-            const id = 'r_' + Date.now();
-            const newRating = {
-                id,
-                whiskyId: document.getElementById('rating-whisky-id').value,
-                tastingId: document.getElementById('rating-tasting-id').value,
-                member: document.getElementById('rating-member').value,
-                score: Number(document.getElementById('rating-score').value),
-                notes: document.getElementById('rating-notes').value
-            };
-
-            reviews.push(newRating);
-            saveData();
-            closeModal('rating');
-            renderAll();
-        }
-
-        // Deletions
-        function deleteWhisky(id) {
-            if (confirm('Vill du ta bort denna whisky och tillhörande recensioner?')) {
-                whiskys = whiskys.filter(w => w.id !== id);
-                reviews = reviews.filter(r => r.whiskyId !== id);
-                saveData();
-                renderAll();
-            }
-        }
-
-        function deleteTasting(id) {
-            if (confirm('Vill du ta bort detta provningstillfälle?')) {
-                tastings = tastings.filter(t => t.id !== id);
-                reviews.forEach(r => { if (r.tastingId === id) r.tastingId = ''; });
-                saveData();
-                renderAll();
-            }
-        }
-
-        function deleteReview(id) {
-            if (confirm('Vill du ta bort denna recension?')) {
-                reviews = reviews.filter(r => r.id !== id);
-                saveData();
-                renderAll();
-            }
-        }
-
-        // Initialize App on load
-        window.onload = function() {
-            renderAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
+
+        window.filterWhiskies = function() {
+            const query = document.getElementById('whisky-search').value.toLowerCase();
+            const filtered = whiskies.filter(w => w.name.toLowerCase().includes(query) || w.distillery.toLowerCase().includes(query) || w.type.toLowerCase().includes(query));
+            renderWhiskies(filtered);
+        };
+
+        window.openModal = function() { document.getElementById('whisky-modal').classList.remove('hidden'); document.getElementById('whisky-modal').classList.add('flex'); };
+        window.closeModal = function() { document.getElementById('whisky-modal').classList.add('hidden'); document.getElementById('whisky-modal').classList.remove('flex'); };
+
+        window.openTastingModal = function() { document.getElementById('tasting-modal').classList.remove('hidden'); document.getElementById('tasting-modal').classList.add('flex'); };
+        window.closeTastingModal = function() { document.getElementById('tasting-modal').classList.add('hidden'); document.getElementById('tasting-modal').classList.remove('flex'); };
+
+        window.openReviewModal = function() { 
+            populateWhiskyDropdown();
+            document.getElementById('review-modal').classList.remove('hidden'); 
+            document.getElementById('review-modal').classList.add('flex'); 
+        };
+        window.closeReviewModal = function() { document.getElementById('review-modal').classList.add('hidden'); document.getElementById('review-modal').classList.remove('flex'); };
+
+        lucide.createIcons();
     </script>
 </body>
 </html>
