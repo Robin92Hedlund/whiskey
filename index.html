@@ -562,4 +562,550 @@
                 container.innerHTML = `<p class="text-xs text-stone-500 italic py-4 text-center">Inga flaskor är kopplade till denna provning.</p>`;
             } else {
                 container.innerHTML = targetWhiskies.map(w => `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-stone-950
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-stone-950/60 border border-stone-800">
+                        <div class="pr-2">
+                            <p class="text-xs font-bold text-stone-200">${w.name}</p>
+                            <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                        </div>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <span class="text-[11px] text-stone-400">Placering:</span>
+                            <input type="number" min="1" max="50" data-whisky-id="${w.id}" placeholder="-" class="rank-input w-16 bg-stone-900 border border-stone-700 rounded-lg px-2 py-1 text-center text-sm text-amber-300 focus:outline-none focus:border-amber-600">
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('vote-modal').classList.remove('hidden');
+            document.getElementById('vote-modal').classList.add('flex');
+        };
+
+        window.closeVoteModal = function() {
+            document.getElementById('vote-modal').classList.add('hidden');
+            document.getElementById('vote-modal').classList.remove('flex');
+            document.getElementById('vote-form').reset();
+        };
+
+        window.openReviewModal = function() {
+            populateWhiskyDropdown();
+            document.getElementById('review-modal').classList.remove('hidden');
+            document.getElementById('review-modal').classList.add('flex');
+        };
+
+        window.closeReviewModal = function() {
+            document.getElementById('review-modal').classList.add('hidden');
+            document.getElementById('review-modal').classList.remove('flex');
+        };
+
+        window.switchTab = function(tabId) {
+            ['overview', 'whiskies', 'tastings', 'reviews', 'rankings'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) el.classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all text-stone-300 hover:text-amber-300 hover:bg-stone-800";
+                }
+            });
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all bg-amber-950/80 text-amber-300 border border-amber-800/50";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.filterWhiskies = function() {
+            const query = document.getElementById('whisky-search').value.toLowerCase();
+            const filtered = whiskies.filter(w => w.name.toLowerCase().includes(query) || (w.distillery && w.distillery.toLowerCase().includes(query)) || (w.type && w.type.toLowerCase().includes(query)));
+            renderWhiskies(filtered);
+        };
+
+        window.checkExistingWhisky = function(val) {
+            const warningEl = document.getElementById('whisky-match-warning');
+            if (!val || val.trim().length < 2) {
+                warningEl.classList.add('hidden');
+                warningEl.innerHTML = '';
+                return;
+            }
+            const query = val.toLowerCase().trim();
+            const matches = whiskies.filter(w => w.name.toLowerCase().includes(query) || (w.distillery && w.distillery.toLowerCase().includes(query)));
+
+            if (matches.length > 0) {
+                warningEl.classList.remove('hidden');
+                warningEl.innerHTML = `
+                    <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-xs space-y-1">
+                        <p class="font-bold text-amber-300 flex items-center space-x-1">
+                            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                            <span>Hittade liknande i arkivet:</span>
+                        </p>
+                        ${matches.map(m => {
+                            const wReviews = reviews.filter(r => r.whiskyId === m.id);
+                            const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : 'Inga betyg';
+                            return `<p class="text-stone-300">• <strong>${m.name}</strong> (${m.distillery || 'Okänt'}, ${m.age || 'NAS'} år) — Snitt: ${avg}</p>`;
+                        }).join('')}
+                    </div>
+                `;
+                lucide.createIcons();
+            } else {
+                warningEl.classList.add('hidden');
+                warningEl.innerHTML = '';
+            }
+        };
+
+        // Firebase Real-time Listeners
+        onSnapshot(collection(db, "whiskies"), (snapshot) => {
+            whiskies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        onSnapshot(collection(db, "tastings"), (snapshot) => {
+            tastings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        onSnapshot(collection(db, "reviews"), (snapshot) => {
+            reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        onSnapshot(collection(db, "tastingVotes"), (snapshot) => {
+            tastingVotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderAll();
+        });
+
+        window.handleWhiskySubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('w-name').value.trim();
+            
+            const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                if (!confirm(`"${name}" verkar redan finnas i arkivet. Vill du spara en till ändå?`)) {
+                    return;
+                }
+            }
+
+            const distillery = document.getElementById('w-distillery').value || 'Okänt destilleri';
+            const type = document.getElementById('w-type').value;
+            const age = document.getElementById('w-age').value || 'NAS';
+            const imageUrl = document.getElementById('w-image').value || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+
+            try {
+                await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
+                closeModal();
+                document.getElementById('whisky-form').reset();
+            } catch (err) {
+                console.error("Fel vid sparande av whisky:", err);
+                alert("Kunde inte spara till molnet.");
+            }
+        };
+
+        window.handleBulkImport = async function(e) {
+            e.preventDefault();
+            const rawJson = document.getElementById('import-json-data').value;
+            try {
+                const list = JSON.parse(rawJson);
+                if (!Array.isArray(list)) {
+                    alert("Koden måste vara en lista (array) i JSON-format.");
+                    return;
+                }
+
+                let count = 0;
+                let skipped = 0;
+                for (const item of list) {
+                    if (!item.name) continue;
+                    const name = item.name.trim();
+
+                    const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
+                    if (exists) {
+                        skipped++;
+                        continue;
+                    }
+
+                    const distillery = item.distillery || 'Okänt destilleri';
+                    const type = item.type || 'Single Malt';
+                    const age = item.age ? String(item.age) : 'NAS';
+                    const imageUrl = item.imageUrl || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+
+                    await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
+                    count++;
+                }
+
+                closeImportModal();
+                document.getElementById('import-json-data').value = '';
+                alert(`Lyckades importera ${count} nya flaskor till molnet! (${skipped} dubbletter hoppades över automatiskt).`);
+            } catch (err) {
+                console.error("Importfel:", err);
+                alert("Ogiltig JSON-kod. Kontrollera att formatet stämmer.");
+            }
+        };
+
+        window.handleTastingSubmit = async function(e) {
+            e.preventDefault();
+            const theme = document.getElementById('t-theme').value;
+            const date = document.getElementById('t-date').value;
+            const host = document.getElementById('t-host').value || 'Ej angivet';
+            const notes = document.getElementById('t-notes').value;
+
+            const connectedWhiskyIds = Array.from(document.querySelectorAll('.tasting-whisky-cb:checked')).map(cb => cb.value);
+
+            try {
+                await addDoc(collection(db, "tastings"), { theme, date, host, notes, connectedWhiskyIds, createdAt: Date.now() });
+                closeTastingModal();
+            } catch (err) {
+                console.error("Fel vid sparande av provning:", err);
+            }
+        };
+
+        window.handleVoteSubmit = async function(e) {
+            e.preventDefault();
+            const tastingId = document.getElementById('v-tasting-id').value;
+            const member = document.getElementById('v-member').value.trim();
+
+            const rankInputs = document.querySelectorAll('.rank-input');
+            const rankings = {};
+            rankInputs.forEach(input => {
+                const val = input.value.trim();
+                if (val !== "") {
+                    const rankNum = parseInt(val, 10);
+                    if (!isNaN(rankNum)) {
+                        rankings[input.dataset.whiskyId] = rankNum;
+                    }
+                }
+            });
+
+            if (Object.keys(rankings).length === 0) {
+                alert("Du måste ange placering för minst en flaska.");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "tastingVotes"), {
+                    tastingId,
+                    member,
+                    rankings,
+                    createdAt: Date.now()
+                });
+                closeVoteModal();
+                alert("Din ranking har sparats!");
+            } catch (err) {
+                console.error("Fel vid sparande av röst:", err);
+                alert("Kunde inte spara röst.");
+            }
+        };
+
+        window.handleReviewSubmit = async function(e) {
+            e.preventDefault();
+            const whiskyId = document.getElementById('r-whisky-id').value;
+            const member = document.getElementById('r-member').value;
+            const score = parseFloat(document.getElementById('r-score').value);
+            const notes = document.getElementById('r-notes').value;
+
+            const selectedWhisky = whiskies.find(w => w.id === whiskyId);
+
+            try {
+                await addDoc(collection(db, "reviews"), {
+                    whiskyId,
+                    whiskyName: selectedWhisky ? selectedWhisky.name : 'Okänd whisky',
+                    member,
+                    score,
+                    notes,
+                    createdAt: Date.now()
+                });
+                closeReviewModal();
+                document.getElementById('review-form').reset();
+            } catch (err) {
+                console.error("Fel vid sparande av betyg:", err);
+            }
+        };
+
+        window.deleteWhisky = async function(id) {
+            if (confirm("Är du säker på att du vill radera denna whisky från arkivet?")) {
+                try {
+                    await deleteDoc(doc(db, "whiskies", id));
+                } catch (err) {
+                    console.error("Kunde inte radera:", err);
+                }
+            }
+        };
+
+        window.deleteTasting = async function(id) {
+            if (confirm("Vill du ta bort detta provningstillfälle?")) {
+                try {
+                    await deleteDoc(doc(db, "tastings", id));
+                } catch (err) {
+                    console.error("Kunde inte radera:", err);
+                }
+            }
+        };
+
+        window.deleteReview = async function(id) {
+            if (confirm("Vill du ta bort denna recension?")) {
+                try {
+                    await deleteDoc(doc(db, "reviews", id));
+                } catch (err) {
+                    console.error("Kunde inte radera:", err);
+                }
+            }
+        };
+
+        function renderAll() {
+            renderOverview();
+            renderWhiskies();
+            renderTastings();
+            renderReviews();
+            renderRankings();
+            populateWhiskyDropdown();
+            lucide.createIcons();
+        }
+
+        function renderOverview() {
+            document.getElementById('stat-total-whiskies').textContent = whiskies.length;
+            document.getElementById('stat-total-tastings').textContent = tastings.length;
+            document.getElementById('stat-total-reviews').textContent = reviews.length;
+
+            let totalScore = 0;
+            if (reviews.length > 0) {
+                reviews.forEach(r => totalScore += Number(r.score));
+                document.getElementById('stat-avg-score').textContent = (totalScore / reviews.length).toFixed(1);
+            } else {
+                document.getElementById('stat-avg-score').textContent = '0.0';
+            }
+
+            const ranked = getRankedWhiskies().slice(0, 3);
+            const topListEl = document.getElementById('overview-top-list');
+            if (ranked.length === 0) {
+                topListEl.innerHTML = `<p class="text-xs text-stone-500 italic">Inga betyg satta ännu.</p>`;
+            } else {
+                topListEl.innerHTML = ranked.map((item, idx) => `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-stone-950/40 border border-stone-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-6 h-6 rounded-full bg-amber-950 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-800/50">${idx + 1}</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-stone-200">${item.name}</h4>
+                                <p class="text-xs text-stone-400">${item.distillery} • ${item.type}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold text-amber-400">${item.avgScore}</span>
+                            <span class="text-xs text-stone-500">/10</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const recentEl = document.getElementById('overview-recent-reviews');
+            const sortedReviews = [...reviews].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3);
+            if (sortedReviews.length === 0) {
+                recentEl.innerHTML = `<p class="text-xs text-stone-500 italic">Inga recensioner ännu.</p>`;
+            } else {
+                recentEl.innerHTML = sortedReviews.map(r => `
+                    <div class="p-3 rounded-xl bg-stone-950/40 border border-stone-800 space-y-1">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-amber-200">${r.whiskyName}</span>
+                            <span class="text-amber-400 font-bold">${r.score} / 10</span>
+                        </div>
+                        <p class="text-xs text-stone-300 italic">"${r.notes}"</p>
+                        <p class="text-[10px] text-stone-500">Av ${r.member}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderWhiskies(filtered = whiskies) {
+            const grid = document.getElementById('whiskies-grid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga whiskysorter hittades. Lägg till er första flaska!</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(w => {
+                const wReviews = reviews.filter(r => r.whiskyId === w.id);
+                const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : '–';
+                return `
+                    <div class="bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 overflow-hidden relative bg-stone-950">
+                                <img src="${w.imageUrl}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-900/80 backdrop-blur text-amber-300 text-xs font-semibold border border-amber-800/50">${w.type}</span>
+                                <button onclick="deleteWhisky('${w.id}')" class="absolute top-3 left-3 p-2 rounded-lg bg-stone-950/80 text-stone-400 hover:text-red-400 backdrop-blur transition border border-stone-800" title="Radera flaska">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="p-5 space-y-2">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-xs text-amber-500 font-medium uppercase tracking-wider">${w.distillery}</p>
+                                        <h3 class="font-serif text-lg font-bold text-stone-100">${w.name}</h3>
+                                    </div>
+                                    <span class="text-xs bg-stone-800 text-stone-300 px-2.5 py-1 rounded-lg font-medium">${w.age} år</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-5 py-4 bg-stone-950/40 border-t border-stone-800/80 flex items-center justify-between">
+                            <span class="text-xs text-stone-400">${wReviews.length} recensioner</span>
+                            <div class="flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
+                                <i data-lucide="star" class="w-4 h-4 fill-amber-500"></i>
+                                <span>${avg}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function renderTastings() {
+            const container = document.getElementById('tastings-list');
+            if (tastings.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga provningstillfällen inlagda.</div>`;
+                return;
+            }
+
+            container.innerHTML = tastings.map(t => {
+                const votes = tastingVotes.filter(v => v.tastingId === t.id);
+                const connectedIds = t.connectedWhiskyIds || [];
+
+                const whiskyStats = {};
+                votes.forEach(v => {
+                    if (v.rankings) {
+                        for (const [wId, rank] of Object.entries(v.rankings)) {
+                            if (!whiskyStats[wId]) whiskyStats[wId] = { totalRank: 0, count: 0 };
+                            whiskyStats[wId].totalRank += Number(rank);
+                            whiskyStats[wId].count += 1;
+                        }
+                    }
+                });
+
+                let sortedWinnerEntries = Object.entries(whiskyStats).map(([wId, stats]) => {
+                    return { wId, avgRank: stats.totalRank / stats.count, count: stats.count };
+                }).sort((a, b) => a.avgRank - b.avgRank);
+
+                let winnerText = `<span class="text-stone-500 italic text-xs">Inga röster inlagda ännu</span>`;
+                if (sortedWinnerEntries.length > 0) {
+                    const best = sortedWinnerEntries[0];
+                    const whiskyObj = whiskies.find(w => w.id === best.wId);
+                    const whiskyName = whiskyObj ? whiskyObj.name : 'Okänd flaska';
+                    winnerText = `
+                        <div class="flex items-center space-x-2 text-amber-300 font-bold text-sm">
+                            <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+                            <span>Vinnare: ${whiskyName} (Snittplacering: ${best.avgRank.toFixed(1)})</span>
+                        </div>
+                    `;
+                }
+
+                // Render connected bottles preview pills
+                const connectedBadges = connectedIds.length > 0 ? connectedIds.map(id => {
+                    const w = whiskies.find(item => item.id === id);
+                    return w ? `<span class="text-[10px] px-2 py-0.5 rounded-md bg-stone-800 text-amber-200 border border-stone-700">${w.name}</span>` : '';
+                }).join('') : `<span class="text-[10px] text-stone-500 italic">Inga specifika flaskor kopplade (visar alla vid röstning)</span>`;
+
+                return `
+                    <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-6 shadow-lg space-y-4 relative">
+                        <button onclick="deleteTasting('${t.id}')" class="absolute top-6 right-6 text-stone-500 hover:text-red-400 transition" title="Radera tillfälle">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800/50 font-medium">${t.date || 'Tid ej satt'}</span>
+                            <span class="text-xs text-stone-400 flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${t.host}</span></span>
+                        </div>
+                        <div>
+                            <h3 class="font-serif text-xl font-bold text-stone-100">${t.theme}</h3>
+                            <p class="text-stone-300 text-sm leading-relaxed mt-1">${t.notes || 'Inga anteckningar angivna.'}</p>
+                        </div>
+                        
+                        <!-- Connected Whiskies Preview -->
+                        <div class="space-y-1">
+                            <p class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Provade flaskor:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${connectedBadges}
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-stone-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div>
+                                <span class="text-xs text-stone-400 block mb-0.5">${votes.length} medlemmar har röstat</span>
+                                ${winnerText}
+                            </div>
+                            <button onclick="openVoteModal('${t.id}', '${t.theme.replace(/'/g, "\\'")}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800/50 font-medium px-4 py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                                <span>Rösta / Ranka</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-list');
+            if (reviews.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga recensioner ännu.</div>`;
+                return;
+            }
+
+            container.innerHTML = reviews.map(r => `
+                <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-5 shadow-lg space-y-3 flex flex-col justify-between relative">
+                    <button onclick="deleteReview('${r.id}')" class="absolute top-5 right-5 text-stone-500 hover:text-red-400 transition" title="Radera recension">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                    <div class="space-y-2 pr-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-serif font-bold text-stone-100">${r.whiskyName}</h4>
+                                <p class="text-xs text-stone-400">Recenserad av <span class="text-amber-300 font-medium">${r.member}</span></p>
+                            </div>
+                            <div class="flex items-center space-x-1 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-800/50 text-amber-400 font-bold text-sm">
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500"></i>
+                                <span>${r.score}</span>
+                            </div>
+                        </div>
+                        <p class="text-stone-300 text-sm italic bg-stone-950/50 p-3 rounded-xl border border-stone-800">"${r.notes}"</p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function getRankedWhiskies() {
+            return whiskies.map(w => {
+                const wReviews = reviews.filter(r => r.whiskyId === w.id);
+                const avgScore = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : 0;
+                return {
+                    ...w,
+                    reviewCount: wReviews.length,
+                    avgScore: Number(avgScore)
+                };
+            }).sort((a, b) => b.avgScore - a.avgScore || b.reviewCount - a.reviewCount);
+        }
+
+        function renderRankings() {
+            const tbody = document.getElementById('rankings-table-body');
+            const ranked = getRankedWhiskies();
+
+            if (ranked.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-stone-500 text-sm">Inga whiskysorter att ranka ännu.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = ranked.map((w, idx) => `
+                <tr class="hover:bg-stone-800/40 transition">
+                    <td class="py-4 px-6 font-bold text-amber-400">${idx + 1}</td>
+                    <td class="py-4 px-6 font-semibold text-stone-100">${w.name} <span class="text-xs text-stone-400 block">${w.distillery}</span></td>
+                    <td class="py-4 px-6 text-stone-300">${w.type}</td>
+                    <td class="py-4 px-6 text-stone-300">${w.age} år</td>
+                    <td class="py-4 px-6 text-stone-300">${w.reviewCount} st</td>
+                    <td class="py-4 px-6 text-right font-bold text-amber-400">${w.avgScore}</td>
+                </tr>
+            `).join('');
+        }
+
+        function populateWhiskyDropdown() {
+            const select = document.getElementById('r-whisky-id');
+            if (select) {
+                select.innerHTML = whiskies.map(w => `<option value="${w.id}">${w.name} (${w.distillery})</option>`).join('');
+            }
+        }
+    </script>
+</body>
+</html>
