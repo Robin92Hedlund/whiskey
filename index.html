@@ -426,7 +426,7 @@
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
             <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Rangordna kvällens flaskor</h3>
-            <p id="vote-modal-subtitle" class="text-stone-400 text-xs mb-4">Sätt siffra (1 = bäst, 2 = näst bäst osv.) på kvällens provade flaskor.</p>
+            <p id="vote-modal-subtitle" class="text-stone-400 text-xs mb-4">Använd pilarna för att flytta din favorit högst upp (1:a plats).</p>
             
             <form id="vote-form" onsubmit="handleVoteSubmit(event)" class="space-y-4 flex-grow overflow-hidden flex flex-col">
                 <input type="hidden" id="v-tasting-id">
@@ -563,7 +563,6 @@
             if (whiskies.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-500 italic p-2">Inga flaskor i katalogen ännu.</p>`;
             } else {
-                // Sort whiskies by createdAt descending (newest first)
                 const sortedWhiskies = [...whiskies].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
                 container.innerHTML = sortedWhiskies.map(w => {
@@ -602,7 +601,7 @@
 
         window.openVoteModal = function(tastingId, theme) {
             document.getElementById('v-tasting-id').value = tastingId;
-            document.getElementById('vote-modal-subtitle').textContent = `Rangordna flaskor för: "${theme}"`;
+            document.getElementById('vote-modal-subtitle').textContent = `Rangordna flaskor för: "${theme}" (Högst upp = 1:a plats)`;
             
             const tastingObj = tastings.find(t => t.id === tastingId);
             const connectedIds = tastingObj && tastingObj.connectedWhiskyIds ? tastingObj.connectedWhiskyIds : [];
@@ -613,23 +612,50 @@
             if (targetWhiskies.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-500 italic py-4 text-center">Inga flaskor är kopplade till denna provning.</p>`;
             } else {
-                container.innerHTML = targetWhiskies.map(w => `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-stone-950/60 border border-stone-800">
-                        <div class="pr-2">
-                            <p class="text-xs font-bold text-stone-200">${w.name}</p>
-                            <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                container.innerHTML = targetWhiskies.map((w, index) => `
+                    <div class="vote-item flex items-center justify-between p-3 rounded-xl bg-stone-950/60 border border-stone-800" data-whisky-id="${w.id}">
+                        <div class="flex items-center space-x-3">
+                            <span class="vote-pos w-6 h-6 rounded-full bg-amber-950 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-800/50">${index + 1}</span>
+                            <div>
+                                <p class="text-xs font-bold text-stone-200">${w.name}</p>
+                                <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-2 shrink-0">
-                            <span class="text-[11px] text-stone-400">Placering:</span>
-                            <input type="number" min="1" max="50" data-whisky-id="${w.id}" placeholder="-" class="rank-input w-16 bg-stone-900 border border-stone-700 rounded-lg px-2 py-1 text-center text-sm text-amber-300 focus:outline-none focus:border-amber-600">
+                        <div class="flex items-center space-x-1">
+                            <button type="button" onclick="moveVoteItem(this, -1)" class="p-2 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition" title="Flytta upp">
+                                <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="moveVoteItem(this, 1)" class="p-2 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition" title="Flytta ner">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
                 `).join('');
+                lucide.createIcons();
             }
 
             document.getElementById('vote-modal').classList.remove('hidden');
             document.getElementById('vote-modal').classList.add('flex');
         };
+
+        window.moveVoteItem = function(btn, direction) {
+            const item = btn.closest('.vote-item');
+            const container = document.getElementById('vote-whiskies-container');
+            if (direction === -1 && item.previousElementSibling) {
+                container.insertBefore(item, item.previousElementSibling);
+            } else if (direction === 1 && item.nextElementSibling) {
+                container.insertBefore(item.nextElementSibling, item);
+            }
+            updateVotePositions();
+        };
+
+        function updateVotePositions() {
+            const items = document.querySelectorAll('.vote-item');
+            items.forEach((item, idx) => {
+                const posEl = item.querySelector('.vote-pos');
+                if (posEl) posEl.textContent = idx + 1;
+            });
+        }
 
         window.closeVoteModal = function() {
             document.getElementById('vote-modal').classList.add('hidden');
@@ -818,20 +844,15 @@
             const tastingId = document.getElementById('v-tasting-id').value;
             const member = document.getElementById('v-member').value.trim();
 
-            const rankInputs = document.querySelectorAll('.rank-input');
+            const voteItems = document.querySelectorAll('.vote-item');
             const rankings = {};
-            rankInputs.forEach(input => {
-                const val = input.value.trim();
-                if (val !== "") {
-                    const rankNum = parseInt(val, 10);
-                    if (!isNaN(rankNum)) {
-                        rankings[input.dataset.whiskyId] = rankNum;
-                    }
-                }
+            voteItems.forEach((item, idx) => {
+                const whiskyId = item.dataset.whiskyId;
+                rankings[whiskyId] = idx + 1; // Top item gets rank 1, next gets rank 2, etc.
             });
 
             if (Object.keys(rankings).length === 0) {
-                alert("Du måste ange placering för minst en flaska.");
+                alert("Inga flaskor att rösta på.");
                 return;
             }
 
