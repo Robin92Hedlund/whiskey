@@ -1094,26 +1094,34 @@
                 const votes = tastingVotes.filter(v => v.tastingId === t.id);
                 const connectedIds = t.connectedWhiskyIds || [];
 
-                const whiskyStats = {};
+                // Räkna ut total poäng (flest poäng är bäst)
+                const whiskyPoints = {};
                 votes.forEach(v => {
                     if (v.rankings) {
                         for (const [wId, rank] of Object.entries(v.rankings)) {
-                            if (!whiskyStats[wId]) whiskyStats[wId] = { totalRank: 0, count: 0 };
-                            whiskyStats[wId].totalRank += Number(rank);
-                            whiskyStats[wId].count += 1;
+                            // Om t.ex. 4 flaskor: rank 1 ger 4 poäng, rank 2 ger 3 poäng osv.
+                            const numBottles = connectedIds.length > 0 ? connectedIds.length : whiskies.length;
+                            const points = numBottles - Number(rank) + 1;
+                            if (!whiskyPoints[wId]) whiskyPoints[wId] = 0;
+                            whiskyPoints[wId] += Math.max(0, points);
                         }
                     }
                 });
 
-                let sortedWinnerEntries = Object.entries(whiskyStats).map(([wId, stats]) => {
-                    return { wId, avgRank: stats.totalRank / stats.count, count: stats.count };
-                }).sort((a, b) => a.avgRank - b.avgRank);
+                let sortedWinnerEntries = Object.entries(whiskyPoints).map(([wId, points]) => {
+                    return { wId, points };
+                }).sort((a, b) => b.points - a.points); // Högst poäng först!
 
-                let resultsHtml = `<span class="text-stone-500 italic text-xs">Inga röster inlagda ännu</span>`;
+                const voterNames = votes.map(v => v.member).filter(Boolean);
+                let votersHtml = voterNames.length > 0 
+                    ? `<span class="text-stone-300">${voterNames.join(', ')}</span>`
+                    : `<span class="text-stone-500 italic">Inga röster inlagda ännu</span>`;
+
+                let resultsHtml = `<span class="text-stone-500 italic text-xs">Inga resultat att visa</span>`;
                 if (sortedWinnerEntries.length > 0) {
                     resultsHtml = `
                         <div class="space-y-1.5 mt-2">
-                            <p class="text-[11px] uppercase tracking-wider text-amber-400 font-semibold">Slutresultat & placeringar:</p>
+                            <p class="text-[11px] uppercase tracking-wider text-amber-400 font-semibold">Slutresultat & totala poäng:</p>
                             <div class="space-y-1">
                                 ${sortedWinnerEntries.map((entry, index) => {
                                     const whiskyObj = whiskies.find(w => w.id === entry.wId);
@@ -1125,7 +1133,7 @@
                                                 <span class="font-bold ${isFirst ? 'text-amber-400' : 'text-stone-400'}">${index + 1}.</span>
                                                 <span>${isFirst ? '👑 ' : ''}<strong>${whiskyName}</strong></span>
                                             </div>
-                                            <span class="font-mono text-amber-400">Snitt: ${entry.avgRank.toFixed(1)}</span>
+                                            <span class="font-mono font-bold text-amber-400">${entry.points} p</span>
                                         </div>
                                     `;
                                 }).join('')}
@@ -1166,8 +1174,9 @@
                         </div>
 
                         <div class="pt-3 border-t border-stone-800/80 space-y-3">
-                            <div class="flex items-center justify-between text-xs text-stone-400">
-                                <span>${votes.length} medlemmar har röstat</span>
+                            <div class="text-xs space-y-0.5">
+                                <span class="text-stone-400 font-semibold">Vilka har röstat (${voterNames.length}):</span>
+                                <div>${votersHtml}</div>
                             </div>
                             ${resultsHtml}
                             <div class="pt-2 flex justify-end">
