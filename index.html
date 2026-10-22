@@ -355,7 +355,7 @@
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
             <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Importera whisky-lista</h3>
-            <p class="text-stone-400 text-xs mb-4">Klistra in JSON-koden du får från AI:n här för att lägga till flera flaskor på en gång.</p>
+            <p class="text-stone-400 text-xs mb-4">Klistra in JSON-koden här. Dubbletter hoppas över automatiskt!</p>
             
             <form onsubmit="handleBulkImport(event)" class="space-y-4">
                 <div>
@@ -582,10 +582,19 @@
             renderAll();
         });
 
-        // Form Submit Handlers
+        // Form Submit Handler with Duplicate Warning
         window.handleWhiskySubmit = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('w-name').value;
+            const name = document.getElementById('w-name').value.trim();
+            
+            // Check if exact name already exists
+            const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                if (!confirm(`"${name}" verkar redan finnas i arkivet. Vill du spara en till ändå?`)) {
+                    return;
+                }
+            }
+
             const distillery = document.getElementById('w-distillery').value || 'Okänt destilleri';
             const type = document.getElementById('w-type').value;
             const age = document.getElementById('w-age').value || 'NAS';
@@ -601,7 +610,7 @@
             }
         };
 
-        // Bulk Import Handler
+        // Bulk Import Handler with Automatic Duplicate Skipping
         window.handleBulkImport = async function(e) {
             e.preventDefault();
             const rawJson = document.getElementById('import-json-data').value;
@@ -613,9 +622,18 @@
                 }
 
                 let count = 0;
+                let skipped = 0;
                 for (const item of list) {
                     if (!item.name) continue;
-                    const name = item.name;
+                    const name = item.name.trim();
+
+                    // Skip if already in database
+                    const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
+                    if (exists) {
+                        skipped++;
+                        continue;
+                    }
+
                     const distillery = item.distillery || 'Okänt destilleri';
                     const type = item.type || 'Single Malt';
                     const age = item.age ? String(item.age) : 'NAS';
@@ -627,7 +645,7 @@
 
                 closeImportModal();
                 document.getElementById('import-json-data').value = '';
-                alert(`Lyckades importera ${count} whiskysorter till molnet!`);
+                alert(`Lyckades importera ${count} nya flaskor till molnet! (${skipped} dubbletter hoppades över automatiskt).`);
             } catch (err) {
                 console.error("Importfel:", err);
                 alert("Ogiltig JSON-kod. Kontrollera att formatet stämmer.");
