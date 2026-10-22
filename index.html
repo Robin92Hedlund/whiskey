@@ -399,14 +399,19 @@
                     <textarea id="t-notes" rows="2" placeholder="Kort om kvällens upplägg..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2 text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1.5">Koppla flaskor som ska provas:</label>
+                <div class="flex flex-col flex-grow overflow-hidden">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400">Koppla flaskor (senaste först):</label>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" id="tasting-bottle-search" oninput="filterTastingBottles(this.value)" placeholder="Sök flaska att koppla..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600">
+                    </div>
                     <div id="tasting-whisky-checkboxes" class="max-h-40 overflow-y-auto space-y-1 bg-stone-950 border border-stone-800 rounded-xl p-3">
                         <!-- Populated dynamically -->
                     </div>
                 </div>
 
-                <div class="pt-2 flex justify-end space-x-3">
+                <div class="pt-2 flex justify-end space-x-3 shrink-0">
                     <button type="button" onclick="closeTastingModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
                     <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Spara tillfälle</button>
                 </div>
@@ -552,20 +557,42 @@
 
         function populateTastingCheckboxes(selectedIds) {
             const container = document.getElementById('tasting-whisky-checkboxes');
+            const searchInput = document.getElementById('tasting-bottle-search');
+            if (searchInput) searchInput.value = '';
+
             if (whiskies.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-500 italic p-2">Inga flaskor i katalogen ännu.</p>`;
             } else {
-                container.innerHTML = whiskies.map(w => {
+                // Sort whiskies by createdAt descending (newest first)
+                const sortedWhiskies = [...whiskies].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                container.innerHTML = sortedWhiskies.map(w => {
                     const isChecked = selectedIds.includes(w.id) ? 'checked' : '';
+                    const searchData = `${w.name} ${w.distillery || ''} ${w.type || ''}`.toLowerCase();
                     return `
-                        <label class="flex items-center space-x-2 text-xs text-stone-300 hover:bg-stone-900 p-1.5 rounded-lg cursor-pointer">
+                        <label class="tasting-bottle-item flex items-center space-x-2 text-xs text-stone-300 hover:bg-stone-900 p-1.5 rounded-lg cursor-pointer" data-search="${searchData}">
                             <input type="checkbox" value="${w.id}" ${isChecked} class="tasting-whisky-cb accent-amber-600 rounded">
-                            <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'})</span>
+                            <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'}, ${w.age || 'NAS'} år)</span>
                         </label>
                     `;
                 }).join('');
             }
         }
+
+        window.filterTastingBottles = function(query) {
+            const q = query.toLowerCase().trim();
+            const items = document.querySelectorAll('.tasting-bottle-item');
+            items.forEach(item => {
+                const text = item.dataset.search || '';
+                if (text.includes(q)) {
+                    item.classList.remove('hidden');
+                    item.classList.add('flex');
+                } else {
+                    item.classList.remove('flex');
+                    item.classList.add('hidden');
+                }
+            });
+        };
 
         window.closeTastingModal = function() {
             document.getElementById('tasting-modal').classList.add('hidden');
