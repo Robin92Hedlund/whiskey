@@ -435,7 +435,7 @@
                     <input type="text" id="v-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                 </div>
                 
-                <div class="flex-grow overflow-y-auto space-y-2 pr-2 border-t border-b border-stone-800 py-3" id="vote-whiskies-container">
+                <div class="flex-grow overflow-y-auto space-y-3 pr-2 border-t border-b border-stone-800 py-3" id="vote-whiskies-container">
                     <!-- Dynamically populated list of connected whiskies -->
                 </div>
 
@@ -601,7 +601,7 @@
 
         window.openVoteModal = function(tastingId, theme) {
             document.getElementById('v-tasting-id').value = tastingId;
-            document.getElementById('vote-modal-subtitle').textContent = `Rangordna flaskor för: "${theme}" (Högst upp = 1:a plats)`;
+            document.getElementById('vote-modal-subtitle').textContent = `Rangordna flaskor för: "${theme}" (Högst upp = 1:a plats 👑)`;
             
             const tastingObj = tastings.find(t => t.id === tastingId);
             const connectedIds = tastingObj && tastingObj.connectedWhiskyIds ? tastingObj.connectedWhiskyIds : [];
@@ -612,26 +612,39 @@
             if (targetWhiskies.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-500 italic py-4 text-center">Inga flaskor är kopplade till denna provning.</p>`;
             } else {
-                container.innerHTML = targetWhiskies.map((w, index) => `
-                    <div class="vote-item flex items-center justify-between p-3 rounded-xl bg-stone-950/60 border border-stone-800" data-whisky-id="${w.id}">
-                        <div class="flex items-center space-x-3">
-                            <span class="vote-pos w-6 h-6 rounded-full bg-amber-950 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-800/50">${index + 1}</span>
-                            <div>
-                                <p class="text-xs font-bold text-stone-200">${w.name}</p>
-                                <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                container.innerHTML = targetWhiskies.map((w, index) => {
+                    const isFirst = index === 0;
+                    return `
+                        <div class="vote-item transition-all duration-300 p-3 rounded-xl border ${isFirst ? 'bg-gradient-to-r from-amber-950/80 to-stone-900 border-amber-500/60 shadow-lg shadow-amber-950/40' : 'bg-stone-950/60 border-stone-800'}" data-whisky-id="${w.id}">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center space-x-3">
+                                    <span class="vote-pos w-6 h-6 rounded-full ${isFirst ? 'bg-amber-500 text-stone-950 font-black shadow-md shadow-amber-500/50' : 'bg-amber-950 text-amber-400 font-bold'} text-xs flex items-center justify-center border border-amber-800/50">${index + 1}</span>
+                                    <div>
+                                        <p class="text-xs font-bold text-stone-200 flex items-center space-x-1.5">
+                                            <span>${w.name}</span>
+                                            <span class="crown-badge ${isFirst ? '' : 'hidden'} text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-semibold">👑 Kvällens kung!</span>
+                                        </p>
+                                        <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button type="button" onclick="moveVoteItem(this, -1)" class="vote-up-btn p-1.5 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition ${isFirst ? 'opacity-20 pointer-events-none' : ''}" title="Flytta upp">
+                                        <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                                    </button>
+                                    <button type="button" onclick="moveVoteItem(this, 1)" class="vote-down-btn p-1.5 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition" title="Flytta ner">
+                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Rasmus anteckningar -->
+                            <div class="mt-2 pt-2 border-t border-stone-800/60">
+                                <input type="text" placeholder="✍️ Rasmus roman / anteckningar..." class="vote-notes w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600">
                             </div>
                         </div>
-                        <div class="flex items-center space-x-1">
-                            <button type="button" onclick="moveVoteItem(this, -1)" class="p-2 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition" title="Flytta upp">
-                                <i data-lucide="chevron-up" class="w-4 h-4"></i>
-                            </button>
-                            <button type="button" onclick="moveVoteItem(this, 1)" class="p-2 rounded-lg bg-stone-900 text-stone-300 hover:text-amber-300 hover:bg-stone-800 border border-stone-800 transition" title="Flytta ner">
-                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 lucide.createIcons();
+                updateVotePositions();
             }
 
             document.getElementById('vote-modal').classList.remove('hidden');
@@ -651,9 +664,42 @@
 
         function updateVotePositions() {
             const items = document.querySelectorAll('.vote-item');
-            items.forEach((item, idx) => {
-                const posEl = item.querySelector('.vote-pos');
+            items.forEach((idx_el, idx) => {
+                const posEl = idx_el.querySelector('.vote-pos');
+                const upBtn = idx_el.querySelector('.vote-up-btn');
+                const downBtn = idx_el.querySelector('.vote-down-btn');
+                const crownBadge = idx_el.querySelector('.crown-badge');
+                
                 if (posEl) posEl.textContent = idx + 1;
+
+                const isFirst = idx === 0;
+                const isLast = idx === items.length - 1;
+
+                if (isFirst) {
+                    idx_el.className = "vote-item transition-all duration-300 p-3 rounded-xl border bg-gradient-to-r from-amber-950/80 to-stone-900 border-amber-500/60 shadow-lg shadow-amber-950/40";
+                    if (posEl) posEl.className = "vote-pos w-6 h-6 rounded-full bg-amber-500 text-stone-950 font-black shadow-md shadow-amber-500/50 text-xs flex items-center justify-center border border-amber-800/50";
+                    if (crownBadge) crownBadge.classList.remove('hidden');
+                } else {
+                    idx_el.className = "vote-item transition-all duration-300 p-3 rounded-xl border bg-stone-950/60 border-stone-800";
+                    if (posEl) posEl.className = "vote-pos w-6 h-6 rounded-full bg-amber-950 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-800/50";
+                    if (crownBadge) crownBadge.classList.add('hidden');
+                }
+
+                // Dölj/avaktivera pilarna i topp och botten
+                if (upBtn) {
+                    if (isFirst) {
+                        upBtn.classList.add('opacity-20', 'pointer-events-none');
+                    } else {
+                        upBtn.classList.remove('opacity-20', 'pointer-events-none');
+                    }
+                }
+                if (downBtn) {
+                    if (isLast) {
+                        downBtn.classList.add('opacity-20', 'pointer-events-none');
+                    } else {
+                        downBtn.classList.remove('opacity-20', 'pointer-events-none');
+                    }
+                }
             });
         }
 
@@ -846,9 +892,14 @@
 
             const voteItems = document.querySelectorAll('.vote-item');
             const rankings = {};
+            const notes = {};
             voteItems.forEach((item, idx) => {
                 const whiskyId = item.dataset.whiskyId;
-                rankings[whiskyId] = idx + 1; // Top item gets rank 1, next gets rank 2, etc.
+                rankings[whiskyId] = idx + 1;
+                const noteInput = item.querySelector('.vote-notes');
+                if (noteInput && noteInput.value.trim()) {
+                    notes[whiskyId] = noteInput.value.trim();
+                }
             });
 
             if (Object.keys(rankings).length === 0) {
@@ -861,10 +912,11 @@
                     tastingId,
                     member,
                     rankings,
+                    notes,
                     createdAt: Date.now()
                 });
                 closeVoteModal();
-                alert("Din ranking har sparats!");
+                alert("Din ranking och Rasmus-roman har sparats!");
             } catch (err) {
                 console.error("Fel vid sparande av röst:", err);
                 alert("Kunde inte spara röst.");
