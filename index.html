@@ -622,7 +622,7 @@
                                     <div>
                                         <p class="text-xs font-bold text-stone-200 flex items-center space-x-1.5">
                                             <span>${w.name}</span>
-                                            <span class="crown-badge ${isFirst ? '' : 'hidden'} text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-semibold">👑 Kvällens kung!</span>
+                                            <span class="crown-badge ${isFirst ? '' : 'hidden'} text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-semibold">👑 Kvällens kung</span>
                                         </p>
                                         <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
                                     </div>
@@ -685,7 +685,6 @@
                     if (crownBadge) crownBadge.classList.add('hidden');
                 }
 
-                // Dölj/avaktivera pilarna i topp och botten
                 if (upBtn) {
                     if (isFirst) {
                         upBtn.classList.add('opacity-20', 'pointer-events-none');
@@ -1110,15 +1109,27 @@
                     return { wId, avgRank: stats.totalRank / stats.count, count: stats.count };
                 }).sort((a, b) => a.avgRank - b.avgRank);
 
-                let winnerText = `<span class="text-stone-500 italic text-xs">Inga röster inlagda ännu</span>`;
+                let resultsHtml = `<span class="text-stone-500 italic text-xs">Inga röster inlagda ännu</span>`;
                 if (sortedWinnerEntries.length > 0) {
-                    const best = sortedWinnerEntries[0];
-                    const whiskyObj = whiskies.find(w => w.id === best.wId);
-                    const whiskyName = whiskyObj ? whiskyObj.name : 'Okänd flaska';
-                    winnerText = `
-                        <div class="flex items-center space-x-2 text-amber-300 font-bold text-sm">
-                            <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
-                            <span>Vinnare: ${whiskyName} (Snittplacering: ${best.avgRank.toFixed(1)})</span>
+                    resultsHtml = `
+                        <div class="space-y-1.5 mt-2">
+                            <p class="text-[11px] uppercase tracking-wider text-amber-400 font-semibold">Slutresultat & placeringar:</p>
+                            <div class="space-y-1">
+                                ${sortedWinnerEntries.map((entry, index) => {
+                                    const whiskyObj = whiskies.find(w => w.id === entry.wId);
+                                    const whiskyName = whiskyObj ? whiskyObj.name : 'Okänd flaska';
+                                    const isFirst = index === 0;
+                                    return `
+                                        <div class="flex items-center justify-between p-2 rounded-lg ${isFirst ? 'bg-amber-950/50 border border-amber-500/50 text-amber-200' : 'bg-stone-950/40 border border-stone-800 text-stone-300'} text-xs">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-bold ${isFirst ? 'text-amber-400' : 'text-stone-400'}">${index + 1}.</span>
+                                                <span>${isFirst ? '👑 ' : ''}<strong>${whiskyName}</strong></span>
+                                            </div>
+                                            <span class="font-mono text-amber-400">Snitt: ${entry.avgRank.toFixed(1)}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
                         </div>
                     `;
                 }
@@ -1154,15 +1165,17 @@
                             </div>
                         </div>
 
-                        <div class="pt-3 border-t border-stone-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
-                                <span class="text-xs text-stone-400 block mb-0.5">${votes.length} medlemmar har röstat</span>
-                                ${winnerText}
+                        <div class="pt-3 border-t border-stone-800/80 space-y-3">
+                            <div class="flex items-center justify-between text-xs text-stone-400">
+                                <span>${votes.length} medlemmar har röstat</span>
                             </div>
-                            <button onclick="openVoteModal('${t.id}', '${t.theme.replace(/'/g, "\\'")}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800/50 font-medium px-4 py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
-                                <i data-lucide="award" class="w-3.5 h-3.5"></i>
-                                <span>Rösta / Ranka</span>
-                            </button>
+                            ${resultsHtml}
+                            <div class="pt-2 flex justify-end">
+                                <button onclick="openVoteModal('${t.id}', '${t.theme.replace(/'/g, "\\'")}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800/50 font-medium px-4 py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                                    <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                                    <span>Rösta / Ranka</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
