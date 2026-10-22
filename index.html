@@ -369,16 +369,17 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD TASTING -->
+    <!-- MODAL: ADD / EDIT TASTING -->
     <div id="tasting-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-stone-900 border border-amber-900/40 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] flex flex-col">
             <button onclick="closeTastingModal()" class="absolute right-5 top-5 text-stone-400 hover:text-stone-100">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Planera / Registrera provning</h3>
-            <p class="text-stone-400 text-xs mb-4">Skapa ett provningstillfälle och välj vilka flaskor som ingår.</p>
+            <h3 id="tasting-modal-title" class="font-serif text-xl font-bold text-amber-100 mb-1">Planera / Registrera provning</h3>
+            <p class="text-stone-400 text-xs mb-4">Skapa eller redigera provningstillfälle och kopplade flaskor.</p>
             
             <form id="tasting-form" onsubmit="handleTastingSubmit(event)" class="space-y-4 flex-grow overflow-hidden flex flex-col">
+                <input type="hidden" id="t-id">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Tema</label>
                     <input type="text" id="t-theme" required placeholder="t.ex. Japansk Whisky eller Islay-special" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
@@ -399,7 +400,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1.5">Koppla flaskor som ska provas (valfritt):</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1.5">Koppla flaskor som ska provas:</label>
                     <div id="tasting-whisky-checkboxes" class="max-h-40 overflow-y-auto space-y-1 bg-stone-950 border border-stone-800 rounded-xl p-3">
                         <!-- Populated dynamically -->
                     </div>
@@ -482,7 +483,7 @@
     <!-- Firebase & Application Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAcorqLZZbJ7cWfd76QfJ0Pa10y194llBY",
@@ -526,20 +527,45 @@
         };
 
         window.openTastingModal = function() {
+            document.getElementById('t-id').value = '';
+            document.getElementById('tasting-modal-title').textContent = 'Planera / Registrera provning';
+            document.getElementById('tasting-form').reset();
+            populateTastingCheckboxes([]);
+            document.getElementById('tasting-modal').classList.remove('hidden');
+            document.getElementById('tasting-modal').classList.add('flex');
+        };
+
+        window.openEditTastingModal = function(id) {
+            const t = tastings.find(item => item.id === id);
+            if (!t) return;
+            document.getElementById('t-id').value = t.id;
+            document.getElementById('tasting-modal-title').textContent = 'Redigera provning';
+            document.getElementById('t-theme').value = t.theme || '';
+            document.getElementById('t-date').value = t.date || '';
+            document.getElementById('t-host').value = t.host || '';
+            document.getElementById('t-notes').value = t.notes || '';
+            
+            populateTastingCheckboxes(t.connectedWhiskyIds || []);
+            document.getElementById('tasting-modal').classList.remove('hidden');
+            document.getElementById('tasting-modal').classList.add('flex');
+        };
+
+        function populateTastingCheckboxes(selectedIds) {
             const container = document.getElementById('tasting-whisky-checkboxes');
             if (whiskies.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-500 italic p-2">Inga flaskor i katalogen ännu.</p>`;
             } else {
-                container.innerHTML = whiskies.map(w => `
-                    <label class="flex items-center space-x-2 text-xs text-stone-300 hover:bg-stone-900 p-1.5 rounded-lg cursor-pointer">
-                        <input type="checkbox" value="${w.id}" class="tasting-whisky-cb accent-amber-600 rounded">
-                        <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'})</span>
-                    </label>
-                `).join('');
+                container.innerHTML = whiskies.map(w => {
+                    const isChecked = selectedIds.includes(w.id) ? 'checked' : '';
+                    return `
+                        <label class="flex items-center space-x-2 text-xs text-stone-300 hover:bg-stone-900 p-1.5 rounded-lg cursor-pointer">
+                            <input type="checkbox" value="${w.id}" ${isChecked} class="tasting-whisky-cb accent-amber-600 rounded">
+                            <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'})</span>
+                        </label>
+                    `;
+                }).join('');
             }
-            document.getElementById('tasting-modal').classList.remove('hidden');
-            document.getElementById('tasting-modal').classList.add('flex');
-        };
+        }
 
         window.closeTastingModal = function() {
             document.getElementById('tasting-modal').classList.add('hidden');
@@ -554,7 +580,6 @@
             const tastingObj = tastings.find(t => t.id === tastingId);
             const connectedIds = tastingObj && tastingObj.connectedWhiskyIds ? tastingObj.connectedWhiskyIds : [];
             
-            // Filter whiskies connected to this tasting, or fallback to all if none were specifically checked
             const targetWhiskies = connectedIds.length > 0 ? whiskies.filter(w => connectedIds.includes(w.id)) : whiskies;
 
             const container = document.getElementById('vote-whiskies-container');
@@ -741,18 +766,23 @@
 
         window.handleTastingSubmit = async function(e) {
             e.preventDefault();
+            const id = document.getElementById('t-id').value;
             const theme = document.getElementById('t-theme').value;
             const date = document.getElementById('t-date').value;
             const host = document.getElementById('t-host').value || 'Ej angivet';
             const notes = document.getElementById('t-notes').value;
-
             const connectedWhiskyIds = Array.from(document.querySelectorAll('.tasting-whisky-cb:checked')).map(cb => cb.value);
 
             try {
-                await addDoc(collection(db, "tastings"), { theme, date, host, notes, connectedWhiskyIds, createdAt: Date.now() });
+                if (id) {
+                    await updateDoc(doc(db, "tastings", id), { theme, date, host, notes, connectedWhiskyIds });
+                } else {
+                    await addDoc(collection(db, "tastings"), { theme, date, host, notes, connectedWhiskyIds, createdAt: Date.now() });
+                }
                 closeTastingModal();
             } catch (err) {
                 console.error("Fel vid sparande av provning:", err);
+                alert("Kunde inte spara provningen.");
             }
         };
 
@@ -957,7 +987,7 @@
         function renderTastings() {
             const container = document.getElementById('tastings-list');
             if (tastings.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga provningstillfällen inlagda.</div>`;
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga provningstillfälle inlagda.</div>`;
                 return;
             }
 
@@ -993,7 +1023,6 @@
                     `;
                 }
 
-                // Render connected bottles preview pills
                 const connectedBadges = connectedIds.length > 0 ? connectedIds.map(id => {
                     const w = whiskies.find(item => item.id === id);
                     return w ? `<span class="text-[10px] px-2 py-0.5 rounded-md bg-stone-800 text-amber-200 border border-stone-700">${w.name}</span>` : '';
@@ -1001,10 +1030,15 @@
 
                 return `
                     <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-6 shadow-lg space-y-4 relative">
-                        <button onclick="deleteTasting('${t.id}')" class="absolute top-6 right-6 text-stone-500 hover:text-red-400 transition" title="Radera tillfälle">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                        <div class="flex items-center space-x-2">
+                        <div class="absolute top-6 right-6 flex items-center space-x-2">
+                            <button onclick="openEditTastingModal('${t.id}')" class="text-stone-500 hover:text-amber-300 transition" title="Redigera tillfälle">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteTasting('${t.id}')" class="text-stone-500 hover:text-red-400 transition" title="Radera tillfälle">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2 pr-16">
                             <span class="text-xs px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800/50 font-medium">${t.date || 'Tid ej satt'}</span>
                             <span class="text-xs text-stone-400 flex items-center space-x-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span>${t.host}</span></span>
                         </div>
@@ -1013,7 +1047,6 @@
                             <p class="text-stone-300 text-sm leading-relaxed mt-1">${t.notes || 'Inga anteckningar angivna.'}</p>
                         </div>
                         
-                        <!-- Connected Whiskies Preview -->
                         <div class="space-y-1">
                             <p class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Provade flaskor:</p>
                             <div class="flex flex-wrap gap-1.5">
