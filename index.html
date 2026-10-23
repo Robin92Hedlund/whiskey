@@ -208,7 +208,7 @@
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="relative flex-grow sm:flex-grow-0">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-500"></i>
-                        <input type="text" id="whisky-search" oninput="filterWhiskies()" placeholder="Sök whisky eller destilleri..." class="w-full sm:w-64 bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600 transition">
+                        <input type="text" id="whisky-search" oninput="filterWhiskies(this.value)" placeholder="Sök whisky eller destilleri..." class="w-full sm:w-64 bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-4 py-2.5 sm:py-2 text-base sm:text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600 transition">
                     </div>
                     <button onclick="openImportModal()" class="bg-stone-800 hover:bg-stone-700 text-amber-200 border border-amber-700/50 font-medium px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 whitespace-nowrap shadow-lg">
                         <i data-lucide="upload" class="w-4 h-4"></i>
@@ -231,7 +231,7 @@
         <section id="tab-tastings" class="hidden space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 class="font-serif text-2xl font-bold text-amber-100">Provningstillfällen & Omröstning</h2>
+                    <h2 class="font-serif text-2xl font-bold text-amber-100">Provningstillfälle & Omröstning</h2>
                     <p class="text-stone-400 text-sm">Temakvällar, kopplade flaskor och vinnare.</p>
                 </div>
                 <button onclick="openTastingModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-950/40">
@@ -310,17 +310,17 @@
             <form id="whisky-form" onsubmit="handleWhiskySubmit(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Namn *</label>
-                    <input type="text" id="w-name" required oninput="checkExistingWhisky(this.value)" placeholder="t.ex. Ardbeg Uigeadail" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    <input type="text" id="w-name" required oninput="checkExistingWhisky(this.value)" placeholder="t.ex. Ardbeg Uigeadail" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     <div id="whisky-match-warning" class="mt-2 space-y-1 hidden"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Destilleri</label>
-                        <input type="text" id="w-distillery" placeholder="t.ex. Ardbeg" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="text" id="w-distillery" placeholder="t.ex. Ardbeg" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Typ</label>
-                        <select id="w-type" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <select id="w-type" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                             <option value="Single Malt">Single Malt</option>
                             <option value="Bourbon">Bourbon</option>
                             <option value="Blended">Blended</option>
@@ -333,11 +333,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ålder (år)</label>
-                        <input type="text" id="w-age" placeholder="t.ex. 12 eller NAS" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="text" id="w-age" placeholder="t.ex. 12 eller NAS" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Bild-länk (valfri URL)</label>
-                        <input type="url" id="w-image" placeholder="https://..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="url" id="w-image" placeholder="https://..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
@@ -382,21 +382,21 @@
                 <input type="hidden" id="t-id">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Tema</label>
-                    <input type="text" id="t-theme" required placeholder="t.ex. Japansk Whisky eller Islay-special" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    <input type="text" id="t-theme" required placeholder="t.ex. Japansk Whisky eller Islay-special" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Datum</label>
-                        <input type="date" id="t-date" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="date" id="t-date" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Plats / Värd</label>
-                        <input type="text" id="t-host" placeholder="t.ex. Hos Erik" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="text" id="t-host" placeholder="t.ex. Hos Erik" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Beskrivning</label>
-                    <textarea id="t-notes" rows="2" placeholder="Kort om kvällens upplägg..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2 text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
+                    <textarea id="t-notes" rows="2" placeholder="Kort om kvällens upplägg..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
                 </div>
 
                 <div class="flex flex-col flex-grow overflow-hidden">
@@ -404,7 +404,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400">Koppla flaskor (senaste först):</label>
                     </div>
                     <div class="mb-2">
-                        <input type="text" id="tasting-bottle-search" oninput="filterTastingBottles(this.value)" placeholder="Sök flaska att koppla..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600">
+                        <input type="text" id="tasting-bottle-search" oninput="filterTastingBottles(this.value)" placeholder="Sök flaska att koppla..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3.5 py-2.5 sm:py-2 text-base sm:text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600">
                     </div>
                     <div id="tasting-whisky-checkboxes" class="max-h-40 overflow-y-auto space-y-1 bg-stone-950 border border-stone-800 rounded-xl p-3">
                         <!-- Populated dynamically -->
@@ -432,7 +432,7 @@
                 <input type="hidden" id="v-tasting-id">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ditt namn</label>
-                    <input type="text" id="v-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    <input type="text" id="v-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                 </div>
                 
                 <div class="flex-grow overflow-y-auto space-y-3 pr-2 border-t border-b border-stone-800 py-3" id="vote-whiskies-container">
@@ -459,23 +459,23 @@
             <form id="review-form" onsubmit="handleReviewSubmit(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Välj Whisky</label>
-                    <select id="r-whisky-id" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                    <select id="r-whisky-id" required class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                         <!-- Populated dynamically -->
                     </select>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ditt namn</label>
-                        <input type="text" id="r-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="text" id="r-member" required placeholder="t.ex. Robin" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Betyg (1-10)</label>
-                        <input type="number" id="r-score" min="1" max="10" step="0.5" required placeholder="t.ex. 8.5" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600">
+                        <input type="number" id="r-score" min="1" max="10" step="0.5" required placeholder="t.ex. 8.5" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Smaknoteringar</label>
-                    <textarea id="r-notes" rows="3" required placeholder="Torv, vanilj, apelsinskal, lång eftersmak..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
+                    <textarea id="r-notes" rows="3" required placeholder="Torv, vanilj, apelsinskal, lång eftersmak..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600"></textarea>
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" onclick="closeReviewModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
@@ -737,10 +737,20 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        window.filterWhiskies = function() {
-            const query = document.getElementById('whisky-search').value.toLowerCase();
-            const filtered = whiskies.filter(w => w.name.toLowerCase().includes(query) || (w.distillery && w.distillery.toLowerCase().includes(query)) || (w.type && w.type.toLowerCase().includes(query)));
-            renderWhiskies(filtered);
+        // Optimerad sökfunktion för mobilläge (använder class-toggling istället för omritning)
+        window.filterWhiskies = function(query) {
+            const q = query.toLowerCase().trim();
+            const cards = document.querySelectorAll('.whisky-card');
+            cards.forEach(card => {
+                const text = card.dataset.search || '';
+                if (text.includes(q)) {
+                    card.classList.remove('hidden');
+                    card.classList.add('flex');
+                } else {
+                    card.classList.remove('flex');
+                    card.classList.add('hidden');
+                }
+            });
         };
 
         window.checkExistingWhisky = function(val) {
@@ -1040,18 +1050,24 @@
             }
         }
 
-        function renderWhiskies(filtered = whiskies) {
+        function renderWhiskies() {
             const grid = document.getElementById('whiskies-grid');
-            if (filtered.length === 0) {
+            if (whiskies.length === 0) {
                 grid.innerHTML = `<div class="col-span-full py-12 text-center text-stone-500 text-sm">Inga whiskysorter hittades. Lägg till er första flaska!</div>`;
                 return;
             }
 
-            grid.innerHTML = filtered.map(w => {
+            const searchInput = document.getElementById('whisky-search');
+            const currentQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            grid.innerHTML = whiskies.map(w => {
                 const wReviews = reviews.filter(r => r.whiskyId === w.id);
                 const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : '–';
+                const searchData = `${w.name} ${w.distillery || ''} ${w.type || ''}`.toLowerCase();
+                const isVisible = !currentQuery || searchData.includes(currentQuery);
+
                 return `
-                    <div class="bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
+                    <div class="whisky-card ${isVisible ? 'flex' : 'hidden'} bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex-col justify-between" data-search="${searchData}">
                         <div>
                             <div class="h-48 overflow-hidden relative bg-stone-950">
                                 <img src="${w.imageUrl}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
@@ -1094,12 +1110,10 @@
                 const votes = tastingVotes.filter(v => v.tastingId === t.id);
                 const connectedIds = t.connectedWhiskyIds || [];
 
-                // Räkna ut total poäng (flest poäng är bäst)
                 const whiskyPoints = {};
                 votes.forEach(v => {
                     if (v.rankings) {
                         for (const [wId, rank] of Object.entries(v.rankings)) {
-                            // Om t.ex. 4 flaskor: rank 1 ger 4 poäng, rank 2 ger 3 poäng osv.
                             const numBottles = connectedIds.length > 0 ? connectedIds.length : whiskies.length;
                             const points = numBottles - Number(rank) + 1;
                             if (!whiskyPoints[wId]) whiskyPoints[wId] = 0;
@@ -1110,7 +1124,7 @@
 
                 let sortedWinnerEntries = Object.entries(whiskyPoints).map(([wId, points]) => {
                     return { wId, points };
-                }).sort((a, b) => b.points - a.points); // Högst poäng först!
+                }).sort((a, b) => b.points - a.points);
 
                 const voterNames = votes.map(v => v.member).filter(Boolean);
                 let votersHtml = voterNames.length > 0 
