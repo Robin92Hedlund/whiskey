@@ -509,9 +509,14 @@
         let reviews = [];
         let tastingVotes = [];
 
-        // Standardbild och gammal standardbild som ska bytas ut automatiskt
-        const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
-        const oldDefaultImage = 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+        // Ny standardbild: whisky i ett provningsglas (t.ex. Glencairn)
+        const defaultBottleImage = 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=600&q=80';
+        
+        // Tidigare standardbilder som ska bytas ut automatiskt
+        const oldDefaultImages = [
+            'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80'
+        ];
 
         // Hjälpfunktion för att formatera ålder snyggt (undviker "NAS år")
         function formatAge(age) {
@@ -521,9 +526,9 @@
             return `${clean} år`;
         }
 
-        // Hjälpfunktion som automatiskt ersätter gamla standardbilden med nya
+        // Hjälpfunktion som automatiskt ersätter gamla standardbilder med provningsglas-bilden
         function getBottleImage(url) {
-            if (!url || url.trim() === '' || url === oldDefaultImage) {
+            if (!url || url.trim() === '' || oldDefaultImages.includes(url)) {
                 return defaultBottleImage;
             }
             return url;
@@ -549,7 +554,7 @@
             document.getElementById('w-distillery').value = w.distillery || '';
             document.getElementById('w-type').value = w.type || 'Single Malt';
             document.getElementById('w-age').value = w.age || '';
-            document.getElementById('w-image').value = (w.imageUrl === oldDefaultImage) ? '' : (w.imageUrl || '');
+            document.getElementById('w-image').value = oldDefaultImages.includes(w.imageUrl) ? '' : (w.imageUrl || '');
             
             document.getElementById('whisky-match-warning').classList.add('hidden');
             document.getElementById('whisky-modal').classList.remove('hidden');
