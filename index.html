@@ -298,16 +298,17 @@
         <p>Whiskysällskapets Arkiv © 2026. Molnsynkad databas via Firebase.</p>
     </footer>
 
-    <!-- MODAL: ADD WHISKY -->
+    <!-- MODAL: ADD / EDIT WHISKY -->
     <div id="whisky-modal" class="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-stone-900 border border-amber-900/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
             <button onclick="closeModal()" class="absolute right-5 top-5 text-stone-400 hover:text-stone-100">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
-            <h3 class="font-serif text-xl font-bold text-amber-100 mb-1">Registrera ny whisky</h3>
-            <p class="text-stone-400 text-xs mb-6">Endast namnet är obligatoriskt. Appen varnar om den redan finns!</p>
+            <h3 id="whisky-modal-title" class="font-serif text-xl font-bold text-amber-100 mb-1">Registrera ny whisky</h3>
+            <p class="text-stone-400 text-xs mb-6">Endast namnet är obligatoriskt.</p>
             
             <form id="whisky-form" onsubmit="handleWhiskySubmit(event)" class="space-y-4">
+                <input type="hidden" id="w-id">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Namn *</label>
                     <input type="text" id="w-name" required oninput="checkExistingWhisky(this.value)" placeholder="t.ex. Ardbeg Uigeadail" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
@@ -342,7 +343,7 @@
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-stone-400 hover:text-stone-200">Avbryt</button>
-                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Spara whisky</button>
+                    <button type="submit" id="whisky-submit-btn" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-950/50 transition">Spara whisky</button>
                 </div>
             </form>
         </div>
@@ -518,6 +519,27 @@
 
         // Global UI functions defined inside module and attached to window
         window.openModal = function() {
+            document.getElementById('w-id').value = '';
+            document.getElementById('whisky-modal-title').textContent = 'Registrera ny whisky';
+            document.getElementById('whisky-submit-btn').textContent = 'Spara whisky';
+            document.getElementById('whisky-form').reset();
+            document.getElementById('whisky-modal').classList.remove('hidden');
+            document.getElementById('whisky-modal').classList.add('flex');
+        };
+
+        window.openEditWhiskyModal = function(id) {
+            const w = whiskies.find(item => item.id === id);
+            if (!w) return;
+            document.getElementById('w-id').value = w.id;
+            document.getElementById('whisky-modal-title').textContent = 'Redigera whisky';
+            document.getElementById('whisky-submit-btn').textContent = 'Spara ändringar';
+            document.getElementById('w-name').value = w.name || '';
+            document.getElementById('w-distillery').value = w.distillery || '';
+            document.getElementById('w-type').value = w.type || 'Single Malt';
+            document.getElementById('w-age').value = w.age || '';
+            document.getElementById('w-image').value = w.imageUrl || '';
+            
+            document.getElementById('whisky-match-warning').classList.add('hidden');
             document.getElementById('whisky-modal').classList.remove('hidden');
             document.getElementById('whisky-modal').classList.add('flex');
         };
@@ -762,13 +784,14 @@
 
         window.checkExistingWhisky = function(val) {
             const warningEl = document.getElementById('whisky-match-warning');
+            const editingId = document.getElementById('w-id').value;
             if (!val || val.trim().length < 2) {
                 warningEl.classList.add('hidden');
                 warningEl.innerHTML = '';
                 return;
             }
             const query = val.toLowerCase().trim();
-            const matches = whiskies.filter(w => w.name.toLowerCase().includes(query) || (w.distillery && w.distillery.toLowerCase().includes(query)));
+            const matches = whiskies.filter(w => w.id !== editingId && (w.name.toLowerCase().includes(query) || (w.distillery && w.distillery.toLowerCase().includes(query))));
 
             if (matches.length > 0) {
                 warningEl.classList.remove('hidden');
@@ -815,24 +838,30 @@
 
         window.handleWhiskySubmit = async function(e) {
             e.preventDefault();
+            const id = document.getElementById('w-id').value;
             const name = document.getElementById('w-name').value.trim();
             
-            const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
-            if (exists) {
-                if (!confirm(`"${name}" verkar redan finnas i arkivet. Vill du spara en till ändå?`)) {
-                    return;
+            if (!id) {
+                const exists = whiskies.some(w => w.name.toLowerCase() === name.toLowerCase());
+                if (exists) {
+                    if (!confirm(`"${name}" verkar redan finnas i arkivet. Vill du spara en till ändå?`)) {
+                        return;
+                    }
                 }
             }
 
             const distillery = document.getElementById('w-distillery').value || 'Okänt destilleri';
             const type = document.getElementById('w-type').value;
             const age = document.getElementById('w-age').value.trim() || 'NAS';
-            // Ny fin standardbild på en whiskyflaska om inget anges
             const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
-            const imageUrl = document.getElementById('w-image').value || defaultBottleImage;
+            const imageUrl = document.getElementById('w-image').value.trim() || defaultBottleImage;
 
             try {
-                await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
+                if (id) {
+                    await updateDoc(doc(db, "whiskies", id), { name, distillery, type, age, imageUrl });
+                } else {
+                    await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
+                }
                 closeModal();
                 document.getElementById('whisky-form').reset();
             } catch (err) {
@@ -1081,11 +1110,16 @@
                     <div class="whisky-card ${isVisible ? 'flex' : 'hidden'} bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex-col justify-between" data-search="${searchData}">
                         <div>
                             <div class="h-48 overflow-hidden relative bg-stone-950">
-                                <img src="${w.imageUrl}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
+                                <img src="${w.imageUrl || 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80'}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
                                 <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-900/80 backdrop-blur text-amber-300 text-xs font-semibold border border-amber-800/50">${w.type}</span>
-                                <button onclick="deleteWhisky('${w.id}')" class="absolute top-3 left-3 p-2 rounded-lg bg-stone-950/80 text-stone-400 hover:text-red-400 backdrop-blur transition border border-stone-800" title="Radera flaska">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <div class="absolute top-3 left-3 flex items-center space-x-1">
+                                    <button onclick="openEditWhiskyModal('${w.id}')" class="p-2 rounded-lg bg-stone-950/80 text-stone-400 hover:text-amber-300 backdrop-blur transition border border-stone-800" title="Redigera flaska">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deleteWhisky('${w.id}')" class="p-2 rounded-lg bg-stone-950/80 text-stone-400 hover:text-red-400 backdrop-blur transition border border-stone-800" title="Radera flaska">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="p-5 space-y-2">
                                 <div class="flex justify-between items-start">
