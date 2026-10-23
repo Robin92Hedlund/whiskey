@@ -332,7 +332,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ålder (år)</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Ålder (år eller NAS)</label>
                         <input type="text" id="w-age" placeholder="t.ex. 12 eller NAS" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 sm:py-2.5 text-base sm:text-sm text-stone-100 focus:outline-none focus:border-amber-600">
                     </div>
                     <div>
@@ -508,6 +508,14 @@
         let reviews = [];
         let tastingVotes = [];
 
+        // Hjälpfunktion för att formatera ålder snyggt (undviker "NAS år")
+        function formatAge(age) {
+            if (!age || age.toString().trim() === '') return 'Ej angiven';
+            const clean = age.toString().trim();
+            if (clean.toLowerCase() === 'nas') return 'NAS';
+            return `${clean} år`;
+        }
+
         // Global UI functions defined inside module and attached to window
         window.openModal = function() {
             document.getElementById('whisky-modal').classList.remove('hidden');
@@ -571,7 +579,7 @@
                     return `
                         <label class="tasting-bottle-item flex items-center space-x-2 text-xs text-stone-300 hover:bg-stone-900 p-1.5 rounded-lg cursor-pointer" data-search="${searchData}">
                             <input type="checkbox" value="${w.id}" ${isChecked} class="tasting-whisky-cb accent-amber-600 rounded">
-                            <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'}, ${w.age || 'NAS'} år)</span>
+                            <span><strong>${w.name}</strong> (${w.distillery || 'Okänt'}, ${formatAge(w.age)})</span>
                         </label>
                     `;
                 }).join('');
@@ -624,7 +632,7 @@
                                             <span>${w.name}</span>
                                             <span class="crown-badge ${isFirst ? '' : 'hidden'} text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-semibold">👑 Kvällens kung</span>
                                         </p>
-                                        <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${w.age} år)</p>
+                                        <p class="text-[10px] text-stone-400">${w.distillery} • ${w.type} (${formatAge(w.age)})</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-1">
@@ -737,7 +745,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // Optimerad sökfunktion för mobilläge (använder class-toggling istället för omritning)
         window.filterWhiskies = function(query) {
             const q = query.toLowerCase().trim();
             const cards = document.querySelectorAll('.whisky-card');
@@ -774,7 +781,7 @@
                         ${matches.map(m => {
                             const wReviews = reviews.filter(r => r.whiskyId === m.id);
                             const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : 'Inga betyg';
-                            return `<p class="text-stone-300">• <strong>${m.name}</strong> (${m.distillery || 'Okänt'}, ${m.age || 'NAS'} år) — Snitt: ${avg}</p>`;
+                            return `<p class="text-stone-300">• <strong>${m.name}</strong> (${m.distillery || 'Okänt'}, ${formatAge(m.age)}) — Snitt: ${avg}</p>`;
                         }).join('')}
                     </div>
                 `;
@@ -819,8 +826,10 @@
 
             const distillery = document.getElementById('w-distillery').value || 'Okänt destilleri';
             const type = document.getElementById('w-type').value;
-            const age = document.getElementById('w-age').value || 'NAS';
-            const imageUrl = document.getElementById('w-image').value || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+            const age = document.getElementById('w-age').value.trim() || 'NAS';
+            // Ny fin standardbild på en whiskyflaska om inget anges
+            const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
+            const imageUrl = document.getElementById('w-image').value || defaultBottleImage;
 
             try {
                 await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
@@ -844,6 +853,8 @@
 
                 let count = 0;
                 let skipped = 0;
+                const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
+
                 for (const item of list) {
                     if (!item.name) continue;
                     const name = item.name.trim();
@@ -856,8 +867,8 @@
 
                     const distillery = item.distillery || 'Okänt destilleri';
                     const type = item.type || 'Single Malt';
-                    const age = item.age ? String(item.age) : 'NAS';
-                    const imageUrl = item.imageUrl || 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+                    const age = item.age !== undefined && item.age !== null ? String(item.age) : 'NAS';
+                    const imageUrl = item.imageUrl || defaultBottleImage;
 
                     await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
                     count++;
@@ -1082,7 +1093,7 @@
                                         <p class="text-xs text-amber-500 font-medium uppercase tracking-wider">${w.distillery}</p>
                                         <h3 class="font-serif text-lg font-bold text-stone-100">${w.name}</h3>
                                     </div>
-                                    <span class="text-xs bg-stone-800 text-stone-300 px-2.5 py-1 rounded-lg font-medium">${w.age} år</span>
+                                    <span class="text-xs bg-stone-800 text-stone-300 px-2.5 py-1 rounded-lg font-medium">${formatAge(w.age)}</span>
                                 </div>
                             </div>
                         </div>
@@ -1262,7 +1273,7 @@
                     <td class="py-4 px-6 font-bold text-amber-400">${idx + 1}</td>
                     <td class="py-4 px-6 font-semibold text-stone-100">${w.name} <span class="text-xs text-stone-400 block">${w.distillery}</span></td>
                     <td class="py-4 px-6 text-stone-300">${w.type}</td>
-                    <td class="py-4 px-6 text-stone-300">${w.age} år</td>
+                    <td class="py-4 px-6 text-stone-300">${formatAge(w.age)}</td>
                     <td class="py-4 px-6 text-stone-300">${w.reviewCount} st</td>
                     <td class="py-4 px-6 text-right font-bold text-amber-400">${w.avgScore}</td>
                 </tr>
