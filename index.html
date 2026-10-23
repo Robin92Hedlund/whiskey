@@ -509,12 +509,24 @@
         let reviews = [];
         let tastingVotes = [];
 
+        // Standardbild och gammal standardbild som ska bytas ut automatiskt
+        const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
+        const oldDefaultImage = 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80';
+
         // Hjälpfunktion för att formatera ålder snyggt (undviker "NAS år")
         function formatAge(age) {
             if (!age || age.toString().trim() === '') return 'Ej angiven';
             const clean = age.toString().trim();
             if (clean.toLowerCase() === 'nas') return 'NAS';
             return `${clean} år`;
+        }
+
+        // Hjälpfunktion som automatiskt ersätter gamla standardbilden med nya
+        function getBottleImage(url) {
+            if (!url || url.trim() === '' || url === oldDefaultImage) {
+                return defaultBottleImage;
+            }
+            return url;
         }
 
         // Global UI functions defined inside module and attached to window
@@ -537,7 +549,7 @@
             document.getElementById('w-distillery').value = w.distillery || '';
             document.getElementById('w-type').value = w.type || 'Single Malt';
             document.getElementById('w-age').value = w.age || '';
-            document.getElementById('w-image').value = w.imageUrl || '';
+            document.getElementById('w-image').value = (w.imageUrl === oldDefaultImage) ? '' : (w.imageUrl || '');
             
             document.getElementById('whisky-match-warning').classList.add('hidden');
             document.getElementById('whisky-modal').classList.remove('hidden');
@@ -853,7 +865,6 @@
             const distillery = document.getElementById('w-distillery').value || 'Okänt destilleri';
             const type = document.getElementById('w-type').value;
             const age = document.getElementById('w-age').value.trim() || 'NAS';
-            const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
             const imageUrl = document.getElementById('w-image').value.trim() || defaultBottleImage;
 
             try {
@@ -882,7 +893,6 @@
 
                 let count = 0;
                 let skipped = 0;
-                const defaultBottleImage = 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80';
 
                 for (const item of list) {
                     if (!item.name) continue;
@@ -897,7 +907,7 @@
                     const distillery = item.distillery || 'Okänt destilleri';
                     const type = item.type || 'Single Malt';
                     const age = item.age !== undefined && item.age !== null ? String(item.age) : 'NAS';
-                    const imageUrl = item.imageUrl || defaultBottleImage;
+                    const imageUrl = item.imageUrl ? getBottleImage(item.imageUrl) : defaultBottleImage;
 
                     await addDoc(collection(db, "whiskies"), { name, distillery, type, age, imageUrl, createdAt: Date.now() });
                     count++;
@@ -1105,12 +1115,13 @@
                 const avg = wReviews.length > 0 ? (wReviews.reduce((sum, r) => sum + r.score, 0) / wReviews.length).toFixed(1) : '–';
                 const searchData = `${w.name} ${w.distillery || ''} ${w.type || ''}`.toLowerCase();
                 const isVisible = !currentQuery || searchData.includes(currentQuery);
+                const imageUrl = getBottleImage(w.imageUrl);
 
                 return `
                     <div class="whisky-card ${isVisible ? 'flex' : 'hidden'} bg-stone-900/60 border border-stone-800 rounded-2xl overflow-hidden shadow-lg flex-col justify-between" data-search="${searchData}">
                         <div>
                             <div class="h-48 overflow-hidden relative bg-stone-950">
-                                <img src="${w.imageUrl || 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=600&q=80'}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
+                                <img src="${imageUrl}" alt="${w.name}" class="w-full h-full object-cover opacity-80 hover:scale-105 transition duration-500">
                                 <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-stone-900/80 backdrop-blur text-amber-300 text-xs font-semibold border border-amber-800/50">${w.type}</span>
                                 <div class="absolute top-3 left-3 flex items-center space-x-1">
                                     <button onclick="openEditWhiskyModal('${w.id}')" class="p-2 rounded-lg bg-stone-950/80 text-stone-400 hover:text-amber-300 backdrop-blur transition border border-stone-800" title="Redigera flaska">
